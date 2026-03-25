@@ -304,12 +304,8 @@
         <input type="number" id="days-alert" value="3" min="1" max="14" />
       </div>
       <div class="form-group">
-        <label>Gmail Address (sender)</label>
-        <input type="email" id="gmail-user" placeholder="you@gmail.com" />
-      </div>
-      <div class="form-group form-row">
-        <label>Gmail App Password</label>
-        <input type="password" id="gmail-app-password" placeholder="16-character app password" autocomplete="off" />
+        <label>Resend API Key</label>
+        <input type="password" id="resend-api-key" placeholder="re_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
       </div>
     </div>
 
@@ -321,11 +317,8 @@
 
     <div class="setup-note">
       <strong>API Token:</strong> Canvas → Account → Settings → Approved Integrations → + New Access Token. Never share this token with anyone.<br><br>
-      <strong>Gmail App Password:</strong>
-      1. Go to <a href="https://myaccount.google.com/security" target="_blank">myaccount.google.com/security</a> &nbsp;
-      2. Enable <strong>2-Step Verification</strong> &nbsp;
-      3. Search for <strong>App Passwords</strong> → create one → name it anything &nbsp;
-      4. Copy the 16-character password into the field above.
+      <strong>Resend API Key:</strong>
+      Sign up free at resend.com → API Keys → Create API Key → paste it above. Emails will be sent from onboarding@resend.dev.
     </div>
 
     <div id="cors-note">
@@ -389,8 +382,7 @@ function saveSettings() {
     apiToken:      document.getElementById('api-token').value.trim(),
     email:         document.getElementById('notify-email').value.trim(),
     daysAlert:     parseInt(document.getElementById('days-alert').value) || 3,
-    gmailUser:     document.getElementById('gmail-user').value.trim(),
-    gmailPass:     document.getElementById('gmail-app-password').value.trim(),
+    resendKey:     document.getElementById('resend-api-key').value.trim(),
     checkInterval: parseInt(document.getElementById('check-interval').value) || 60,
   };
   LS.set('cvt_settings', settings);
@@ -403,8 +395,7 @@ function loadSettingsIntoForm() {
   document.getElementById('api-token').value       = s.apiToken      || '';
   document.getElementById('notify-email').value    = s.email         || '';
   document.getElementById('days-alert').value      = s.daysAlert     || 3;
-  document.getElementById('gmail-user').value         = s.gmailUser || '';
-  document.getElementById('gmail-app-password').value = s.gmailPass || '';
+  document.getElementById('resend-api-key').value = s.resendKey || '';
   document.getElementById('check-interval').value     = s.checkInterval || 60;
 }
 
@@ -678,7 +669,7 @@ let notifState = LS.get('cvt_notified') || {};
 if (notifState.date !== TODAY) notifState = { date: TODAY, ids: [] }; // reset daily
 
 function checkDueSoonAndNotify(assignments) {
-  if (!settings.email || !settings.gmailUser) return;
+  if (!settings.email || !settings.resendKey) return;
   const threshold = settings.daysAlert || 3;
 
   const dueSoon = assignments.filter(a => {
@@ -700,7 +691,7 @@ function checkDueSoonAndNotify(assignments) {
 }
 
 function notifyGradeChanges(changes) {
-  if (!settings.email || !settings.gmailUser) return;
+  if (!settings.email || !settings.resendKey) return;
   sendEmail('📊 Grade update', `Your grades have changed:\n\n${changes.join('\n')}`);
 }
 
@@ -733,8 +724,8 @@ function sendSummaryEmail() {
 }
 
 async function sendEmail(subject, message) {
-  if (!settings.gmailUser || !settings.gmailPass || !settings.email) {
-    toast('Gmail not fully configured — skipping email.', 'info');
+  if (!settings.resendKey || !settings.email) {
+    toast('Email not configured — add Resend API key and recipient.', 'info');
     return;
   }
   try {
@@ -742,9 +733,8 @@ async function sendEmail(subject, message) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        gmailUser:   settings.gmailUser,
-        appPassword: settings.gmailPass,
-        to:          settings.email,
+        resendKey: settings.resendKey,
+        to:        settings.email,
         subject,
         message
       })
