@@ -583,7 +583,9 @@ function renderTasks(assignments) {
       <div class="assignment-card">
         <div class="due-badge ${badge.cls}">${date.split(',')[0]}<br><strong>${badge.label}</strong></div>
         <div class="assignment-info">
-          <div class="assignment-name" title="${a.name}">${a.name}</div>
+          <div class="assignment-name" title="${a.name}">
+            ${a.html_url ? `<a href="${a.html_url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${a.name}</a>` : a.name}
+          </div>
           <div class="assignment-course">${a._course || ''}</div>
         </div>
         <div class="assignment-points">${pts}</div>
@@ -682,7 +684,8 @@ function checkDueSoonAndNotify(assignments) {
 
   const lines = dueSoon.map(a => {
     const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
-    return `• ${a.name} (${a._course}) — due ${diff === 0 ? 'TODAY' : 'in ' + diff + ' day(s)'} on ${fmtDate(a.due_at)}`;
+    const link = a.html_url ? `\n  ${a.html_url}` : '';
+    return `• ${a.name} (${a._course}) — due ${diff === 0 ? 'TODAY' : 'in ' + diff + ' day(s)'} on ${fmtDate(a.due_at)}${link}`;
   }).join('\n');
 
   sendEmail(`⚠️ ${dueSoon.length} assignment(s) due soon`, `Upcoming assignments:\n\n${lines}\n\nStay on top of it! 📚`);
@@ -716,7 +719,8 @@ function sendSummaryEmail() {
     .map(a => {
       const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
       const when = diff === 0 ? 'TODAY' : diff === 1 ? 'Tomorrow' : `in ${diff} days`;
-      return `• ${a.name} (${a._course})\n  Due ${when} — ${fmtDate(a.due_at)}`;
+      const link = a.html_url ? ` → ${a.html_url}` : '';
+      return `• ${a.name} (${a._course})\n  Due ${when} — ${fmtDate(a.due_at)}${link}`;
     })
     .join('\n') || 'No upcoming tasks.';
 
