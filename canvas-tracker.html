@@ -696,7 +696,7 @@ function notifyGradeChanges(changes) {
 }
 
 function sendSummaryEmail() {
-  if (!settings.email || !settings.gmailUser) {
+  if (!settings.email || !settings.resendKey) {
     toast('Configure email settings first.', 'error');
     return;
   }
