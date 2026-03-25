@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Canvas Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     :root {
       --bg: #0f1117;
@@ -305,16 +304,12 @@
         <input type="number" id="days-alert" value="3" min="1" max="14" />
       </div>
       <div class="form-group">
-        <label>EmailJS Public Key</label>
-        <input type="text" id="ejs-public-key" placeholder="From emailjs.com dashboard" />
-      </div>
-      <div class="form-group">
-        <label>EmailJS Service ID</label>
-        <input type="text" id="ejs-service-id" placeholder="service_xxxxxxx" />
+        <label>Gmail Address (sender)</label>
+        <input type="email" id="gmail-user" placeholder="you@gmail.com" />
       </div>
       <div class="form-group form-row">
-        <label>EmailJS Template ID</label>
-        <input type="text" id="ejs-template-id" placeholder="template_xxxxxxx" />
+        <label>Gmail App Password</label>
+        <input type="password" id="gmail-app-password" placeholder="16-character app password" autocomplete="off" />
       </div>
     </div>
 
@@ -326,11 +321,11 @@
 
     <div class="setup-note">
       <strong>API Token:</strong> Canvas → Account → Settings → Approved Integrations → + New Access Token. Never share this token with anyone.<br><br>
-      <strong>Email alerts (free):</strong>
-      1. Sign up at <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> &nbsp;
-      2. Add an Email Service (Gmail etc.) &nbsp;
-      3. Create a Template — body should contain <code>{{subject}}</code> and <code>{{message}}</code> &nbsp;
-      4. Copy your <strong>Public Key</strong>, <strong>Service ID</strong>, and <strong>Template ID</strong> into the fields above.
+      <strong>Gmail App Password:</strong>
+      1. Go to <a href="https://myaccount.google.com/security" target="_blank">myaccount.google.com/security</a> &nbsp;
+      2. Enable <strong>2-Step Verification</strong> &nbsp;
+      3. Search for <strong>App Passwords</strong> → create one → name it anything &nbsp;
+      4. Copy the 16-character password into the field above.
     </div>
 
     <div id="cors-note">
@@ -394,13 +389,11 @@ function saveSettings() {
     apiToken:      document.getElementById('api-token').value.trim(),
     email:         document.getElementById('notify-email').value.trim(),
     daysAlert:     parseInt(document.getElementById('days-alert').value) || 3,
-    ejsPublicKey:  document.getElementById('ejs-public-key').value.trim(),
-    ejsServiceId:  document.getElementById('ejs-service-id').value.trim(),
-    ejsTemplateId: document.getElementById('ejs-template-id').value.trim(),
+    gmailUser:     document.getElementById('gmail-user').value.trim(),
+    gmailPass:     document.getElementById('gmail-app-password').value.trim(),
     checkInterval: parseInt(document.getElementById('check-interval').value) || 60,
   };
   LS.set('cvt_settings', settings);
-  if (settings.ejsPublicKey) emailjs.init(settings.ejsPublicKey);
   toast('Settings saved!', 'success');
 }
 
@@ -410,11 +403,9 @@ function loadSettingsIntoForm() {
   document.getElementById('api-token').value       = s.apiToken      || '';
   document.getElementById('notify-email').value    = s.email         || '';
   document.getElementById('days-alert').value      = s.daysAlert     || 3;
-  document.getElementById('ejs-public-key').value  = s.ejsPublicKey  || '';
-  document.getElementById('ejs-service-id').value  = s.ejsServiceId  || '';
-  document.getElementById('ejs-template-id').value = s.ejsTemplateId || '';
-  document.getElementById('check-interval').value  = s.checkInterval || 60;
-  if (s.ejsPublicKey) emailjs.init(s.ejsPublicKey);
+  document.getElementById('gmail-user').value         = s.gmailUser || '';
+  document.getElementById('gmail-app-password').value = s.gmailPass || '';
+  document.getElementById('check-interval').value     = s.checkInterval || 60;
 }
 
 // ── Canvas API ────────────────────────────────────────────────────────────────
@@ -687,7 +678,7 @@ let notifState = LS.get('cvt_notified') || {};
 if (notifState.date !== TODAY) notifState = { date: TODAY, ids: [] }; // reset daily
 
 function checkDueSoonAndNotify(assignments) {
-  if (!settings.email || !settings.ejsPublicKey) return;
+  if (!settings.email || !settings.gmailUser) return;
   const threshold = settings.daysAlert || 3;
 
   const dueSoon = assignments.filter(a => {
@@ -709,12 +700,12 @@ function checkDueSoonAndNotify(assignments) {
 }
 
 function notifyGradeChanges(changes) {
-  if (!settings.email || !settings.ejsPublicKey) return;
+  if (!settings.email || !settings.gmailUser) return;
   sendEmail('📊 Grade update', `Your grades have changed:\n\n${changes.join('\n')}`);
 }
 
 function sendSummaryEmail() {
-  if (!settings.email || !settings.ejsPublicKey) {
+  if (!settings.email || !settings.gmailUser) {
     toast('Configure email settings first.', 'error');
     return;
   }
@@ -741,19 +732,29 @@ function sendSummaryEmail() {
   sendEmail('📋 Canvas Summary', `GRADES\n──────\n${gradeLines}\n\nUPCOMING TASKS\n──────────────\n${upcoming}`);
 }
 
-function sendEmail(subject, message) {
-  if (!settings.ejsPublicKey || !settings.ejsServiceId || !settings.ejsTemplateId) {
-    toast('EmailJS not fully configured — skipping email.', 'info');
+async function sendEmail(subject, message) {
+  if (!settings.gmailUser || !settings.gmailPass || !settings.email) {
+    toast('Gmail not fully configured — skipping email.', 'info');
     return;
   }
-  emailjs.send(settings.ejsServiceId, settings.ejsTemplateId, {
-    subject,
-    message,
-    to_email:  settings.email,
-    from_name: 'Canvas Tracker'
-  })
-  .then(() => toast('Email sent! 📧', 'success'))
-  .catch(err => toast('Email failed: ' + (err.text || err.message || 'unknown error'), 'error'));
+  try {
+    const res = await fetch('/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gmailUser:   settings.gmailUser,
+        appPassword: settings.gmailPass,
+        to:          settings.email,
+        subject,
+        message
+      })
+    });
+    const data = await res.json();
+    if (data.ok) toast('Email sent! 📧', 'success');
+    else toast('Email failed: ' + data.error, 'error');
+  } catch (err) {
+    toast('Email failed: ' + err.message, 'error');
+  }
 }
 
 // ── Auto-check ────────────────────────────────────────────────────────────────

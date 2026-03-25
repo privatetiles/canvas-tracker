@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node proxy.js"
   },
+  "dependencies": {
+    "nodemailer": "^6.9.9"
+  },
   "engines": {
     "node": ">=18"
   }
