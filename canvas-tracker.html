@@ -18,170 +18,68 @@
       --muted: #6b7280;
       --radius: 10px;
     }
-
+    body.light {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --border: #dde1ea;
+      --text: #1a1d27;
+      --muted: #8892a4;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       padding: 24px;
+      transition: background 0.2s, color 0.2s;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .header h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 8px; }
+    .header h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .last-checked { font-size: 0.75rem; color: var(--muted); }
-
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: opacity 0.15s, transform 0.1s;
-    }
+    button { cursor: pointer; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; transition: opacity 0.15s, transform 0.1s; }
     button:hover { opacity: 0.85; }
     button:active { transform: scale(0.97); }
+    .btn-primary   { background: var(--accent); color: #fff; padding: 8px 16px; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; }
+    .btn-danger    { background: var(--red); color: #fff; padding: 8px 16px; }
+    .btn-icon      { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 6px 10px; font-size: 1rem; line-height: 1; }
 
-    .btn-primary  { background: var(--accent); color: #fff; padding: 8px 16px; }
-    .btn-secondary{ background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; }
-    .btn-danger   { background: var(--red); color: #fff; padding: 8px 16px; }
-
-    /* Setup panel */
-    #setup-banner {
-      background: linear-gradient(135deg, #1e2235, #1a1d27);
-      border: 1px solid var(--accent);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-    }
+    #setup-banner { background: linear-gradient(135deg, #1e2235, #1a1d27); border: 1px solid var(--accent); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+    body.light #setup-banner { background: #fff; }
     #setup-banner h2 { font-size: 1rem; margin-bottom: 4px; color: var(--accent); }
-
-    .settings-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-    }
+    .settings-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
     .settings-toggle span { font-size: 0.85rem; color: var(--muted); }
-
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
     .form-row { grid-column: 1 / -1; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label {
-      font-size: 0.72rem;
-      color: var(--muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .form-group input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 8px 12px;
-      font-size: 0.875rem;
-      outline: none;
-      transition: border-color 0.15s;
-    }
+    .form-group label { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px 12px; font-size: 0.875rem; outline: none; transition: border-color 0.15s; }
     .form-group input:focus { border-color: var(--accent); }
     .form-group input::placeholder { color: var(--muted); }
-
-    .section-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0 4px;
-      color: var(--muted);
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      grid-column: 1 / -1;
-    }
-    .section-divider::before, .section-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
+    .section-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 4px; color: var(--muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; grid-column: 1 / -1; }
+    .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .form-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-
-    .setup-note {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 14px;
-      line-height: 1.7;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-    }
+    .setup-note { font-size: 0.75rem; color: var(--muted); margin-top: 14px; line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; }
     .setup-note a { color: var(--accent); text-decoration: none; }
-    .setup-note code {
-      background: var(--bg);
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.85em;
-    }
+    .setup-note code { background: var(--bg); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
 
-    /* Status bar */
-    .notif-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 16px;
-      margin-bottom: 20px;
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .notif-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
     .notif-panel label { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
-    .notif-panel input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      padding: 5px 10px;
-      font-size: 0.8rem;
-      outline: none;
-      width: 64px;
-    }
+    .notif-panel input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 5px 10px; font-size: 0.8rem; outline: none; width: 64px; }
     .notif-item { display: flex; align-items: center; gap: 6px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; box-shadow: 0 0 6px var(--green); }
     .status-dot.off { background: var(--muted); box-shadow: none; }
 
-    /* Tabs */
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
     .tab { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 20px; border-radius: 8px; font-size: 0.875rem; }
     .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tab.warn { border-color: var(--red); color: var(--red); }
+    .tab.warn.active { background: var(--red); border-color: var(--red); color: #fff; }
 
-    /* Cards */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-
-    .course-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      transition: border-color 0.2s;
-    }
+    .course-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: border-color 0.2s; cursor: pointer; }
     .course-card:hover { border-color: var(--accent); }
     .course-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .grade-display { display: flex; align-items: baseline; gap: 8px; }
@@ -189,18 +87,13 @@
     .grade-percent { font-size: 0.875rem; color: var(--muted); }
     .grade-bar { height: 4px; background: var(--border); border-radius: 4px; margin-top: 10px; overflow: hidden; }
     .grade-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .calc-hint { font-size: 0.68rem; color: var(--muted); margin-top: 8px; text-align: right; }
 
-    /* Assignment list */
-    .assignment-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: border-color 0.2s;
-    }
+    .task-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .task-toolbar select { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 6px 10px; font-size: 0.8rem; outline: none; cursor: pointer; }
+    .task-toolbar select:focus { border-color: var(--accent); }
+
+    .assignment-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
     .assignment-card:hover { border-color: var(--accent); }
     .due-badge { min-width: 60px; text-align: center; border-radius: 8px; padding: 5px 8px; font-size: 0.7rem; font-weight: 700; line-height: 1.4; }
     .due-badge.urgent { background: rgba(224,82,82,0.15);  color: var(--red);    border: 1px solid rgba(224,82,82,0.3); }
@@ -210,50 +103,41 @@
     .assignment-name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .assignment-course { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
     .assignment-points { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+    .sub-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+    .sub-badge.submitted { background: rgba(62,207,142,0.15);  color: var(--green);  border: 1px solid rgba(62,207,142,0.3); }
+    .sub-badge.graded    { background: rgba(79,142,247,0.15);  color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+    .sub-badge.missing   { background: rgba(224,82,82,0.15);   color: var(--red);    border: 1px solid rgba(224,82,82,0.3); }
+    .countdown { font-size: 0.72rem; color: var(--red); font-weight: 700; }
 
     .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
     .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
     .empty-state p { font-size: 0.875rem; }
 
-    /* Toast */
     #toast-container { position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
-    .toast {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 0.85rem;
-      max-width: 340px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      animation: slideIn 0.2s ease;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      line-height: 1.4;
-    }
+    .toast { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 0.85rem; max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: slideIn 0.2s ease; display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; }
     .toast.success { border-left: 3px solid var(--green); }
     .toast.error   { border-left: 3px solid var(--red); }
     .toast.info    { border-left: 3px solid var(--accent); }
     @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* Spinner */
     #loading { text-align: center; padding: 48px; color: var(--muted); display: none; }
     #loading.visible { display: block; }
     .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* CORS note */
-    #cors-note {
-      display: none;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 8px;
-      background: rgba(245,166,35,0.08);
-      border: 1px solid rgba(245,166,35,0.3);
-      font-size: 0.8rem;
-      color: var(--yellow);
-      line-height: 1.6;
-    }
+    #cors-note { display: none; margin-top: 12px; padding: 12px; border-radius: 8px; background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.3); font-size: 0.8rem; color: var(--yellow); line-height: 1.6; }
+
+    /* Grade Calculator Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+    .modal-overlay.hidden { display: none; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .modal h3 { font-size: 1rem; margin-bottom: 16px; color: var(--accent); }
+    .modal-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .modal-row label { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .modal-row input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px 12px; font-size: 0.875rem; outline: none; }
+    .modal-row input:focus { border-color: var(--accent); }
+    .modal-result { background: var(--bg); border-radius: 8px; padding: 14px; margin: 16px 0; text-align: center; font-size: 1rem; font-weight: 600; min-height: 48px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
     @media (max-width: 600px) {
       body { padding: 14px; }
@@ -266,11 +150,41 @@
 
 <div id="toast-container"></div>
 
+<!-- Grade Calculator Modal -->
+<div class="modal-overlay hidden" id="calc-modal">
+  <div class="modal">
+    <h3>🧮 Grade Calculator</h3>
+    <div class="modal-row">
+      <label for="calc-course">Course</label>
+      <input type="text" id="calc-course" readonly style="cursor:default;" />
+    </div>
+    <div class="modal-row">
+      <label for="calc-current">Current Grade (%)</label>
+      <input type="number" id="calc-current" min="0" max="100" step="0.1" />
+    </div>
+    <div class="modal-row">
+      <label for="calc-weight">Weight of Remaining Work (%)</label>
+      <input type="number" id="calc-weight" min="1" max="100" step="1" placeholder="e.g. 30 for a 30% final exam" />
+    </div>
+    <div class="modal-row">
+      <label for="calc-target">Target Final Grade (%)</label>
+      <input type="number" id="calc-target" min="0" max="100" step="0.1" placeholder="e.g. 90" />
+    </div>
+    <div class="modal-result" id="calc-result">Enter values above to calculate.</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="calc-close">Close</button>
+      <button class="btn-primary"   id="calc-run">Calculate</button>
+    </div>
+  </div>
+</div>
+
 <!-- Header -->
 <div class="header">
   <h1>Canvas Tracker</h1>
   <div class="header-actions">
     <span class="last-checked" id="last-checked"></span>
+    <button class="btn-icon" id="theme-btn" title="Toggle dark/light mode">☀️</button>
+    <button class="btn-secondary" style="font-size:0.8rem;padding:6px 12px;" id="calc-open-btn">🧮 Calculator</button>
     <button class="btn-primary" id="refresh-btn">⟳ Refresh</button>
   </div>
 </div>
@@ -285,27 +199,33 @@
   <div id="settings-body">
     <div class="form-grid">
       <div class="form-group form-row">
-        <label>Canvas URL</label>
+        <label for="canvas-url">Canvas URL</label>
         <input type="url" id="canvas-url" placeholder="https://yourschool.instructure.com" />
       </div>
       <div class="form-group form-row">
-        <label>API Token</label>
+        <label for="api-token">API Token</label>
         <input type="password" id="api-token" placeholder="Paste your Canvas API token" autocomplete="off" />
       </div>
 
       <div class="section-divider">Email Notifications (optional)</div>
 
       <div class="form-group">
-        <label>Your Email (receives alerts)</label>
+        <label for="notify-email">Your Email (receives alerts)</label>
         <input type="email" id="notify-email" placeholder="you@email.com" />
       </div>
       <div class="form-group">
-        <label>Alert when due within (days)</label>
+        <label for="days-alert">Alert when due within (days)</label>
         <input type="number" id="days-alert" value="3" min="1" max="14" />
       </div>
       <div class="form-group">
-        <label>Resend API Key</label>
+        <label for="resend-api-key">Resend API Key</label>
         <input type="password" id="resend-api-key" placeholder="re_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+      </div>
+      <div class="form-group" style="justify-content:flex-end;padding-top:8px;">
+        <label for="daily-digest" style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;font-size:0.82rem;font-weight:600;">
+          <input type="checkbox" id="daily-digest" style="width:auto;padding:0;border:none;background:none;" />
+          Send daily digest email
+        </label>
       </div>
     </div>
 
@@ -317,14 +237,12 @@
 
     <div class="setup-note">
       <strong>API Token:</strong> Canvas → Account → Settings → Approved Integrations → + New Access Token. Never share this token with anyone.<br><br>
-      <strong>Resend API Key:</strong>
-      Sign up free at resend.com → API Keys → Create API Key → paste it above. Emails will be sent from onboarding@resend.dev.
+      <strong>Resend API Key:</strong> Sign up free at resend.com → API Keys → Create API Key → paste above. Emails send from onboarding@resend.dev.
     </div>
 
     <div id="cors-note">
-      <strong>⚠️ CORS Error:</strong> Your browser blocked the Canvas request because this file is opened directly (file://).<br>
-      Fix: open a terminal, <code>cd</code> to this folder, run <code>python3 -m http.server 8080</code>,
-      then visit <code>http://localhost:8080/canvas-tracker.html</code>
+      <strong>⚠️ CORS Error:</strong> Your browser blocked the Canvas request.<br>
+      Fix: run <code>python3 -m http.server 8080</code> in this folder, then visit <code>http://localhost:8080</code>
     </div>
   </div>
 </div>
@@ -346,7 +264,8 @@
 <!-- Tabs -->
 <div class="tabs" id="tabs" style="display:none;">
   <button class="tab active" data-tab="grades">📊 Grades</button>
-  <button class="tab" data-tab="tasks">📋 Upcoming Tasks</button>
+  <button class="tab" data-tab="tasks">📋 Upcoming</button>
+  <button class="tab warn" data-tab="missing" id="missing-tab" style="display:none;">⚠️ Missing <span id="missing-count"></span></button>
 </div>
 
 <!-- Loading -->
@@ -362,18 +281,46 @@
 
 <!-- Task content -->
 <div id="content-tasks" style="display:none;">
+  <div class="task-toolbar">
+    <select id="course-filter"><option value="">All Courses</option></select>
+    <select id="task-sort">
+      <option value="due">Sort: Due Date</option>
+      <option value="course">Sort: Course</option>
+      <option value="points">Sort: Points ↓</option>
+      <option value="urgency">Sort: Urgency</option>
+    </select>
+    <button class="btn-secondary" style="font-size:0.8rem;padding:6px 12px;" id="copy-tasks-btn">📋 Copy All</button>
+  </div>
   <div id="tasks-list"></div>
 </div>
 
+<!-- Missing content -->
+<div id="content-missing" style="display:none;">
+  <div id="missing-list"></div>
+</div>
+
 <script>
-// ── Storage ─────────────────────────────────────────────────────────────────
+// ── Storage ───────────────────────────────────────────────────────────────────
 const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
   del: k => localStorage.removeItem(k)
 };
 
-// ── Settings ─────────────────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function applyTheme(light) {
+  document.body.classList.toggle('light', light);
+  document.getElementById('theme-btn').textContent = light ? '🌙' : '☀️';
+}
+let isLight = LS.get('cvt_theme') === 'light';
+applyTheme(isLight);
+document.getElementById('theme-btn').addEventListener('click', () => {
+  isLight = !isLight;
+  applyTheme(isLight);
+  LS.set('cvt_theme', isLight ? 'light' : 'dark');
+});
+
+// ── Settings ──────────────────────────────────────────────────────────────────
 let settings = LS.get('cvt_settings') || {};
 
 function saveSettings() {
@@ -384,6 +331,7 @@ function saveSettings() {
     daysAlert:     parseInt(document.getElementById('days-alert').value) || 3,
     resendKey:     document.getElementById('resend-api-key').value.trim(),
     checkInterval: parseInt(document.getElementById('check-interval').value) || 60,
+    dailyDigest:   document.getElementById('daily-digest').checked,
   };
   LS.set('cvt_settings', settings);
   toast('Settings saved!', 'success');
@@ -395,8 +343,9 @@ function loadSettingsIntoForm() {
   document.getElementById('api-token').value       = s.apiToken      || '';
   document.getElementById('notify-email').value    = s.email         || '';
   document.getElementById('days-alert').value      = s.daysAlert     || 3;
-  document.getElementById('resend-api-key').value = s.resendKey || '';
-  document.getElementById('check-interval').value     = s.checkInterval || 60;
+  document.getElementById('resend-api-key').value  = s.resendKey     || '';
+  document.getElementById('check-interval').value  = s.checkInterval || 60;
+  document.getElementById('daily-digest').checked  = s.dailyDigest   || false;
 }
 
 // ── Canvas API ────────────────────────────────────────────────────────────────
@@ -404,10 +353,7 @@ async function apiGet(path) {
   const res = await fetch('/canvas', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      url:   `${settings.canvasUrl}/api/v1${path}`,
-      token: settings.apiToken
-    })
+    body: JSON.stringify({ url: `${settings.canvasUrl}/api/v1${path}`, token: settings.apiToken })
   });
   if (!res.ok) {
     if (res.status === 401) throw new Error('Invalid API token — check your token in settings.');
@@ -420,22 +366,22 @@ async function apiGet(path) {
 async function getCourses() {
   return apiGet('/courses?enrollment_state=active&include[]=total_scores&include[]=current_grading_period_scores&include[]=favorites&per_page=50');
 }
-
 async function getAssignments(courseId) {
   return apiGet(`/courses/${courseId}/assignments?bucket=upcoming&per_page=50&include[]=submission&order_by=due_at`);
 }
-
+async function getMissingAssignments(courseId) {
+  try { return await apiGet(`/courses/${courseId}/assignments?bucket=missing&per_page=50&include[]=submission`); }
+  catch { return []; }
+}
 async function getEnrollmentGrades(courseId) {
   try {
-    const enrollments = await apiGet(`/courses/${courseId}/enrollments?type[]=StudentEnrollment&user_id=self&include[]=grades&per_page=10`);
-    return enrollments[0] || null;
+    const e = await apiGet(`/courses/${courseId}/enrollments?type[]=StudentEnrollment&user_id=self&include[]=grades&per_page=10`);
+    return e[0] || null;
   } catch { return null; }
 }
-
 async function getMasteryGrades(courseId) {
-  try {
-    return await apiGet(`/courses/${courseId}/outcome_rollups?user_ids[]=self&include[]=outcomes&per_page=100`);
-  } catch { return null; }
+  try { return await apiGet(`/courses/${courseId}/outcome_rollups?user_ids[]=self&include[]=outcomes&per_page=100`); }
+  catch { return null; }
 }
 
 // ── Grade helpers ─────────────────────────────────────────────────────────────
@@ -448,23 +394,20 @@ function letterGrade(pct) {
   if (pct >= 67) return 'D+'; if (pct >= 60) return 'D';
   return 'F';
 }
-
 function gradeColor(pct) {
   if (pct == null) return 'var(--muted)';
   if (pct >= 80) return 'var(--green)';
   if (pct >= 70) return 'var(--yellow)';
   return 'var(--red)';
 }
-
-// Mastery label + color from a 0–4 scale (or custom mastery_points scale)
 function masteryLabel(score, masteryPoints) {
   const mp = masteryPoints || 3;
-  const ratio = score / mp;
   if (score == null) return { label: '—', color: 'var(--muted)' };
-  if (ratio >= 1.15) return { label: 'Exceeds',    color: 'var(--green)' };
-  if (ratio >= 1.0)  return { label: 'Mastery',    color: 'var(--green)' };
-  if (ratio >= 0.7)  return { label: 'Approaching',color: 'var(--yellow)' };
-  return               { label: 'Beginning',  color: 'var(--red)' };
+  const ratio = score / mp;
+  if (ratio >= 1.15) return { label: 'Exceeds',     color: 'var(--green)' };
+  if (ratio >= 1.0)  return { label: 'Mastery',     color: 'var(--green)' };
+  if (ratio >= 0.7)  return { label: 'Approaching', color: 'var(--yellow)' };
+  return               { label: 'Beginning',   color: 'var(--red)' };
 }
 
 // ── Due date helpers ──────────────────────────────────────────────────────────
@@ -477,80 +420,90 @@ function dueBadge(dueAt) {
   if (diff <= (settings.daysAlert || 3)) return { cls: 'soon', label: `${diff} days` };
   return { cls: 'ok', label: `${diff} days` };
 }
-
 function fmtDate(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
+function countdown(dueAt) {
+  const ms = new Date(dueAt) - Date.now();
+  if (ms <= 0) return null;
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+}
+function subBadge(submission) {
+  if (!submission) return '';
+  const s = submission.workflow_state;
+  if (s === 'graded')    return `<span class="sub-badge graded">✓ Graded</span>`;
+  if (s === 'submitted') return `<span class="sub-badge submitted">↑ Submitted</span>`;
+  return '';
+}
 
 // ── Render grades ─────────────────────────────────────────────────────────────
+let courseGradeData = [];
+
 function renderGrades(courses, gradeMap, masteryMap) {
-  const grid = document.getElementById('grades-grid');
+  const grid   = document.getElementById('grades-grid');
   const before = LS.get('cvt_grades') || {};
-  const now = {};
+  const now    = {};
   const changes = [];
+  const drops   = [];
+  courseGradeData = [];
 
   const cards = courses.map(c => {
-    const name = c.name || c.course_code || `Course ${c.id}`;
-
-    // Try detailed enrollment grades first, then fallback to course enrollments
-    const enrollment   = gradeMap[c.id] || c.enrollments?.find(e => e.type === 'student');
-    const pct          = enrollment?.grades?.current_score ?? enrollment?.computed_current_score ?? null;
-    const letter       = enrollment?.grades?.current_grade || enrollment?.computed_current_grade || null;
-    const masteryData  = masteryMap[c.id];
-
-    // Determine if this course uses mastery grading
-    const hasMastery = masteryData?.rollups?.length > 0 && pct == null && !letter;
-
-    let cardHTML;
+    const name       = c.name || c.course_code || `Course ${c.id}`;
+    const enrollment = gradeMap[c.id] || c.enrollments?.find(e => e.type === 'student');
+    const pct        = enrollment?.grades?.current_score ?? enrollment?.computed_current_score ?? null;
+    const letter     = enrollment?.grades?.current_grade || enrollment?.computed_current_grade || null;
+    const masteryData = masteryMap[c.id];
+    const hasMastery  = masteryData?.rollups?.length > 0 && pct == null && !letter;
+    const safeName    = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
     if (hasMastery) {
-      // ── Mastery grading ──
       const scores = masteryData.rollups[0]?.scores || [];
       const rated  = scores.filter(s => s.score != null);
       const avg    = rated.length ? rated.reduce((a, s) => a + s.score, 0) / rated.length : null;
       const mp     = scores[0]?.outcome?.mastery_points || 3;
       const { label, color } = masteryLabel(avg, mp);
       const barPct = avg != null ? Math.min(100, (avg / (mp * 1.25)) * 100) : 0;
-
       now[c.id] = { pct: avg, letter: label, name, mastery: true };
-      if (before[c.id]?.pct !== avg && avg != null && before[c.id]?.pct != null) {
-        changes.push(`${name}: ${before[c.id].label} → ${label}`);
+      if (before[c.id]?.pct != null && avg != null && before[c.id].pct !== avg) {
+        const line = `${name}: ${before[c.id].letter} → ${label}`;
+        changes.push(line);
+        if (avg < before[c.id].pct) drops.push(line);
       }
-
-      cardHTML = `
-        <div class="course-card">
-          <div class="course-name" title="${name}">${name}</div>
-          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
-            <span style="font-size:1.3rem;font-weight:800;color:${color}">${label}</span>
-            <span style="font-size:0.8rem;color:var(--muted)">${avg != null ? avg.toFixed(2) + ' / ' + mp + ' pts avg' : 'No scores yet'}</span>
-          </div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">${rated.length} outcome${rated.length !== 1 ? 's' : ''} scored</div>
-          <div class="grade-bar"><div class="grade-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
-        </div>`;
+      courseGradeData.push({ name, pct: null });
+      return `<div class="course-card" onclick="openCalc('${safeName}',null)">
+        <div class="course-name" title="${name}">${name}</div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
+          <span style="font-size:1.3rem;font-weight:800;color:${color}">${label}</span>
+          <span style="font-size:0.8rem;color:var(--muted)">${avg != null ? avg.toFixed(2)+' / '+mp+' pts avg' : 'No scores yet'}</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">${rated.length} outcome${rated.length!==1?'s':''} scored</div>
+        <div class="grade-bar"><div class="grade-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
+        <div class="calc-hint">Click to open grade calculator →</div>
+      </div>`;
     } else {
-      // ── Traditional / percentage grading ──
       const displayLetter = letter || letterGrade(pct);
       const color  = gradeColor(pct);
       const barPct = pct != null ? Math.min(100, pct) : 0;
-
       now[c.id] = { pct, letter: displayLetter, name };
       if (before[c.id] && before[c.id].pct !== pct && pct != null && before[c.id].pct != null) {
-        changes.push(`${name}: ${before[c.id].pct?.toFixed(1) ?? '?'}% → ${pct.toFixed(1)}%`);
+        const line = `${name}: ${before[c.id].pct?.toFixed(1)??'?'}% → ${pct.toFixed(1)}%`;
+        changes.push(line);
+        if (pct < before[c.id].pct) drops.push(line);
       }
-
-      cardHTML = `
-        <div class="course-card">
-          <div class="course-name" title="${name}">${name}</div>
-          <div class="grade-display">
-            <span class="grade-letter" style="color:${color}">${displayLetter}</span>
-            <span class="grade-percent">${pct != null ? pct.toFixed(1) + '%' : 'No grade yet'}</span>
-          </div>
-          <div class="grade-bar"><div class="grade-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
-        </div>`;
+      courseGradeData.push({ name, pct });
+      return `<div class="course-card" onclick="openCalc('${safeName}',${pct??'null'})">
+        <div class="course-name" title="${name}">${name}</div>
+        <div class="grade-display">
+          <span class="grade-letter" style="color:${color}">${displayLetter}</span>
+          <span class="grade-percent">${pct != null ? pct.toFixed(1)+'%' : 'No grade yet'}</span>
+        </div>
+        <div class="grade-bar"><div class="grade-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
+        <div class="calc-hint">Click to open grade calculator →</div>
+      </div>`;
     }
-
-    return cardHTML;
   });
 
   grid.innerHTML = cards.length
@@ -558,42 +511,156 @@ function renderGrades(courses, gradeMap, masteryMap) {
     : `<div class="empty-state"><div class="icon">📭</div><p>No active courses found.</p></div>`;
 
   LS.set('cvt_grades', now);
-  if (changes.length) notifyGradeChanges(changes);
+  if (changes.length) notifyGradeChanges(changes, drops);
 }
 
 // ── Render tasks ──────────────────────────────────────────────────────────────
 let allAssignments = [];
+let allMissing     = [];
 
 function renderTasks(assignments) {
   allAssignments = assignments
     .filter(a => a.due_at && new Date(a.due_at) > new Date())
     .sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
 
-  const list = document.getElementById('tasks-list');
-  if (!allAssignments.length) {
+  const courses = [...new Set(allAssignments.map(a => a._course).filter(Boolean))].sort();
+  const sel = document.getElementById('course-filter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">All Courses</option>' +
+    courses.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (prev && courses.includes(prev)) sel.value = prev;
+
+  displayTasks();
+}
+
+function displayTasks() {
+  const list   = document.getElementById('tasks-list');
+  const filter = document.getElementById('course-filter').value;
+  const sort   = document.getElementById('task-sort').value;
+
+  let items = filter ? allAssignments.filter(a => a._course === filter) : [...allAssignments];
+  if (sort === 'course')  items.sort((a, b) => (a._course||'').localeCompare(b._course||''));
+  if (sort === 'points')  items.sort((a, b) => (b.points_possible||0) - (a.points_possible||0));
+  // 'due' and 'urgency' both use due date order (already sorted)
+
+  if (!items.length) {
     list.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>No upcoming assignments. You're all caught up!</p></div>`;
     return;
   }
 
-  const items = allAssignments.map(a => {
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">${items.map(a => {
     const badge = dueBadge(a.due_at);
     const pts   = a.points_possible ? `${a.points_possible} pts` : '';
     const date  = fmtDate(a.due_at);
-    return `
-      <div class="assignment-card">
-        <div class="due-badge ${badge.cls}">${date.split(',')[0]}<br><strong>${badge.label}</strong></div>
-        <div class="assignment-info">
-          <div class="assignment-name" title="${a.name}">
-            ${a.html_url ? `<a href="${a.html_url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${a.name}</a>` : a.name}
-          </div>
-          <div class="assignment-course">${a._course || ''}</div>
+    const cd    = badge.label === 'TODAY' ? countdown(a.due_at) : null;
+    const sub   = subBadge(a.submission);
+    return `<div class="assignment-card">
+      <div class="due-badge ${badge.cls}">${date.split(',')[0]}<br><strong>${badge.label}</strong></div>
+      <div class="assignment-info">
+        <div class="assignment-name" title="${a.name}">
+          ${a.html_url ? `<a href="${a.html_url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${a.name}</a>` : a.name}
         </div>
-        <div class="assignment-points">${pts}</div>
-      </div>`;
-  });
-
-  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">${items.join('')}</div>`;
+        <div class="assignment-course">${a._course||''}${cd?` · <span class="countdown">${cd}</span>`:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        ${sub}
+        <span class="assignment-points">${pts}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
 }
+
+function renderMissing(missing) {
+  allMissing = missing;
+  const tab   = document.getElementById('missing-tab');
+  const count = document.getElementById('missing-count');
+  const list  = document.getElementById('missing-list');
+
+  if (!missing.length) { tab.style.display = 'none'; return; }
+  tab.style.display = '';
+  count.textContent = `(${missing.length})`;
+
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">${missing.map(a => {
+    const pts  = a.points_possible ? `${a.points_possible} pts` : '';
+    const date = a.due_at ? fmtDate(a.due_at) : 'No date';
+    return `<div class="assignment-card" style="border-color:rgba(224,82,82,0.3);">
+      <div class="due-badge urgent">Missing<br><strong>⚠️</strong></div>
+      <div class="assignment-info">
+        <div class="assignment-name" title="${a.name}">
+          ${a.html_url ? `<a href="${a.html_url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${a.name}</a>` : a.name}
+        </div>
+        <div class="assignment-course">${a._course||''} · Was due ${date}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <span class="sub-badge missing">Missing</span>
+        <span class="assignment-points">${pts}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Grade Calculator ──────────────────────────────────────────────────────────
+function openCalc(name, pct) {
+  document.getElementById('calc-course').value  = name;
+  document.getElementById('calc-current').value = pct != null ? parseFloat(pct).toFixed(1) : '';
+  document.getElementById('calc-weight').value  = '';
+  document.getElementById('calc-target').value  = '';
+  document.getElementById('calc-result').innerHTML = 'Enter values above to calculate.';
+  document.getElementById('calc-modal').classList.remove('hidden');
+}
+
+document.getElementById('calc-close').addEventListener('click', () =>
+  document.getElementById('calc-modal').classList.add('hidden'));
+document.getElementById('calc-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('calc-modal'))
+    document.getElementById('calc-modal').classList.add('hidden');
+});
+document.getElementById('calc-run').addEventListener('click', () => {
+  const current = parseFloat(document.getElementById('calc-current').value);
+  const weight  = parseFloat(document.getElementById('calc-weight').value);
+  const target  = parseFloat(document.getElementById('calc-target').value);
+  const result  = document.getElementById('calc-result');
+  if (isNaN(current) || isNaN(weight) || isNaN(target)) {
+    result.innerHTML = `<span style="color:var(--red)">Please fill in all fields.</span>`; return;
+  }
+  if (weight <= 0 || weight > 100) {
+    result.innerHTML = `<span style="color:var(--red)">Weight must be 1–100.</span>`; return;
+  }
+  const w = weight / 100;
+  const needed = (target - current * (1 - w)) / w;
+  const maxPossible = current * (1 - w) + 100 * w;
+  if (needed > 100) {
+    result.innerHTML = `<span style="color:var(--red)">Not achievable — you'd need ${needed.toFixed(1)}%. Max possible: ${maxPossible.toFixed(1)}%.</span>`;
+  } else if (needed <= 0) {
+    result.innerHTML = `<span style="color:var(--green)">You already have ${target}% locked in no matter what! 🎉</span>`;
+  } else {
+    const col = needed >= 90 ? 'var(--red)' : needed >= 75 ? 'var(--yellow)' : 'var(--green)';
+    result.innerHTML = `You need <span style="color:${col};font-size:1.4rem;">${needed.toFixed(1)}%</span> on the remaining ${weight}% of your grade.`;
+  }
+});
+document.getElementById('calc-open-btn').addEventListener('click', () => {
+  const first = courseGradeData[0];
+  openCalc(first?.name || '', first?.pct ?? null);
+});
+
+// ── Copy tasks ────────────────────────────────────────────────────────────────
+document.getElementById('copy-tasks-btn').addEventListener('click', () => {
+  if (!allAssignments.length) { toast('No tasks loaded yet.', 'info'); return; }
+  const filter = document.getElementById('course-filter').value;
+  const items  = filter ? allAssignments.filter(a => a._course === filter) : allAssignments;
+  const text   = items.map(a => {
+    const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
+    const when = diff === 0 ? 'TODAY' : diff === 1 ? 'Tomorrow' : `in ${diff} days`;
+    return `• ${a.name} (${a._course}) — due ${when} on ${fmtDate(a.due_at)}`;
+  }).join('\n');
+  navigator.clipboard.writeText(text)
+    .then(() => toast('Tasks copied to clipboard!', 'success'))
+    .catch(() => toast('Copy failed — try a different browser.', 'error'));
+});
+
+// ── Filter / Sort ─────────────────────────────────────────────────────────────
+document.getElementById('course-filter').addEventListener('change', displayTasks);
+document.getElementById('task-sort').addEventListener('change', displayTasks);
 
 // ── Main fetch ────────────────────────────────────────────────────────────────
 let isFetching = false;
@@ -601,10 +668,8 @@ let isFetching = false;
 async function fetchAll() {
   if (isFetching) return;
   if (!settings.canvasUrl || !settings.apiToken) {
-    toast('Please save your Canvas URL and API token first.', 'error');
-    return;
+    toast('Please save your Canvas URL and API token first.', 'error'); return;
   }
-
   isFetching = true;
   document.getElementById('loading').classList.add('visible');
   document.getElementById('refresh-btn').disabled = true;
@@ -614,17 +679,16 @@ async function fetchAll() {
 
   try {
     const courses = await getCourses();
-
-    // Fetch detailed grades + mastery data + assignments for all courses in parallel
-    const [gradeResults, masteryResults, assignmentArrays] = await Promise.all([
+    const [gradeResults, masteryResults, assignmentArrays, missingArrays] = await Promise.all([
       Promise.all(courses.map(async c => ({ id: c.id, data: await getEnrollmentGrades(c.id) }))),
       Promise.all(courses.map(async c => ({ id: c.id, data: await getMasteryGrades(c.id) }))),
       Promise.all(courses.map(async c => {
-        try {
-          const list = await getAssignments(c.id);
-          return list.map(a => ({ ...a, _course: c.name || c.course_code }));
-        } catch { return []; }
-      }))
+        try { return (await getAssignments(c.id)).map(a => ({ ...a, _course: c.name || c.course_code })); }
+        catch { return []; }
+      })),
+      Promise.all(courses.map(async c =>
+        (await getMissingAssignments(c.id)).map(a => ({ ...a, _course: c.name || c.course_code }))
+      ))
     ]);
 
     const gradeMap   = Object.fromEntries(gradeResults.map(r => [r.id, r.data]));
@@ -632,26 +696,26 @@ async function fetchAll() {
 
     renderGrades(courses, gradeMap, masteryMap);
     renderTasks(assignmentArrays.flat());
+    renderMissing(missingArrays.flat());
 
     const now = new Date().toLocaleTimeString();
     document.getElementById('last-checked').textContent = `Last checked: ${now}`;
     LS.set('cvt_last', now);
-
-    document.getElementById('tabs').style.display         = 'flex';
-    document.getElementById('notif-panel').style.display  = 'flex';
-    document.getElementById('status-dot').className       = 'status-dot';
-    document.getElementById('status-text').textContent    = `${courses.length} course${courses.length !== 1 ? 's' : ''} loaded`;
+    document.getElementById('tabs').style.display        = 'flex';
+    document.getElementById('notif-panel').style.display = 'flex';
+    document.getElementById('status-dot').className      = 'status-dot';
+    document.getElementById('status-text').textContent   = `${courses.length} course${courses.length!==1?'s':''} loaded`;
     toast(`Loaded ${courses.length} courses`, 'success');
 
     checkDueSoonAndNotify(assignmentArrays.flat());
+    checkDailyDigest();
 
   } catch (err) {
     document.getElementById('status-dot').className    = 'status-dot off';
     document.getElementById('status-text').textContent = 'Error';
     if (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror')) {
-      toast('Network error — Canvas may be blocking this request. See the CORS note in settings.', 'error');
+      toast('Network error — see CORS note in settings.', 'error');
       document.getElementById('cors-note').style.display = 'block';
-      // Expand settings so user sees the note
       document.getElementById('settings-body').style.display = 'block';
       document.getElementById('settings-toggle-label').textContent = '▲ hide';
     } else {
@@ -664,84 +728,82 @@ async function fetchAll() {
   }
 }
 
-// ── Email ────────────────────────────────────────────────────────────────────
-// Track notified IDs per day so alerts re-fire each new day
+// ── Email ─────────────────────────────────────────────────────────────────────
 const TODAY = new Date().toDateString();
 let notifState = LS.get('cvt_notified') || {};
-if (notifState.date !== TODAY) notifState = { date: TODAY, ids: [] }; // reset daily
+if (notifState.date !== TODAY) notifState = { date: TODAY, ids: [] };
 
 function checkDueSoonAndNotify(assignments) {
   if (!settings.email || !settings.resendKey) return;
   const threshold = settings.daysAlert || 3;
-
   const dueSoon = assignments.filter(a => {
     if (!a.due_at) return false;
     const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
     return diff >= 0 && diff <= threshold && !notifState.ids.includes(String(a.id));
   });
-
   if (!dueSoon.length) return;
-
   const lines = dueSoon.map(a => {
     const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
     const link = a.html_url ? `\n  ${a.html_url}` : '';
-    return `• ${a.name} (${a._course}) — due ${diff === 0 ? 'TODAY' : 'in ' + diff + ' day(s)'} on ${fmtDate(a.due_at)}${link}`;
+    return `• ${a.name} (${a._course}) — due ${diff===0?'TODAY':'in '+diff+' day(s)'} on ${fmtDate(a.due_at)}${link}`;
   }).join('\n');
-
   sendEmail(`⚠️ ${dueSoon.length} assignment(s) due soon`, `Upcoming assignments:\n\n${lines}\n\nStay on top of it! 📚`);
   notifState.ids = [...notifState.ids, ...dueSoon.map(a => String(a.id))];
   LS.set('cvt_notified', notifState);
 }
 
-function notifyGradeChanges(changes) {
+function notifyGradeChanges(changes, drops) {
   if (!settings.email || !settings.resendKey) return;
-  sendEmail('📊 Grade update', `Your grades have changed:\n\n${changes.join('\n')}`);
+  const dropSection = drops.length ? `\n\n⬇️ GRADE DROPS:\n${drops.join('\n')}` : '';
+  sendEmail('📊 Grade update', `Your grades have changed:\n\n${changes.join('\n')}${dropSection}`);
 }
 
-function sendSummaryEmail() {
+function checkDailyDigest() {
+  if (!settings.dailyDigest || !settings.email || !settings.resendKey) return;
+  if (LS.get('cvt_digest_date') === TODAY) return;
+  LS.set('cvt_digest_date', TODAY);
+  sendSummaryEmail(true);
+}
+
+function sendSummaryEmail(silent = false) {
   if (!settings.email || !settings.resendKey) {
-    toast('Configure email settings first.', 'error');
+    if (!silent) toast('Configure email settings first.', 'error');
     return;
   }
-  if (!allAssignments.length) {
-    toast('No data loaded yet — click Refresh first, then try again.', 'error');
-    return;
+  if (!allAssignments.length && !silent) {
+    toast('No data loaded yet — click Refresh first.', 'error'); return;
   }
   const grades = LS.get('cvt_grades') || {};
-  const gradeLines = Object.values(grades)
-    .map(g => {
-      if (g.mastery) return `• ${g.name}: ${g.letter} (avg ${g.pct != null ? g.pct.toFixed(2) : 'N/A'})`;
-      return `• ${g.name}: ${g.letter} (${g.pct != null ? g.pct.toFixed(1) + '%' : 'N/A'})`;
-    })
-    .join('\n') || 'No grades available.';
+  const gradeLines = Object.values(grades).map(g =>
+    g.mastery
+      ? `• ${g.name}: ${g.letter} (avg ${g.pct!=null?g.pct.toFixed(2):'N/A'})`
+      : `• ${g.name}: ${g.letter} (${g.pct!=null?g.pct.toFixed(1)+'%':'N/A'})`
+  ).join('\n') || 'No grades available.';
 
-  const upcoming = allAssignments
-    .map(a => {
-      const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
-      const when = diff === 0 ? 'TODAY' : diff === 1 ? 'Tomorrow' : `in ${diff} days`;
-      const link = a.html_url ? ` → ${a.html_url}` : '';
-      return `• ${a.name} (${a._course})\n  Due ${when} — ${fmtDate(a.due_at)}${link}`;
-    })
-    .join('\n') || 'No upcoming tasks.';
+  const upcoming = allAssignments.map(a => {
+    const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
+    const when = diff===0?'TODAY':diff===1?'Tomorrow':`in ${diff} days`;
+    const link = a.html_url ? ` → ${a.html_url}` : '';
+    return `• ${a.name} (${a._course})\n  Due ${when} — ${fmtDate(a.due_at)}${link}`;
+  }).join('\n') || 'No upcoming tasks.';
 
-  sendEmail('📋 Canvas Summary', `GRADES\n──────\n${gradeLines}\n\nUPCOMING TASKS\n──────────────\n${upcoming}`);
+  const missingSection = allMissing.length
+    ? `\n\nMISSING (${allMissing.length})\n${'─'.repeat(20)}\n` +
+      allMissing.map(a => `• ${a.name} (${a._course})${a.html_url?'\n  '+a.html_url:''}`).join('\n')
+    : '';
+
+  sendEmail('📋 Canvas Daily Digest', `GRADES\n──────\n${gradeLines}\n\nUPCOMING\n────────\n${upcoming}${missingSection}`);
 }
 
 async function sendEmail(subject, message) {
   if (!settings.resendKey || !settings.email) {
-    toast('Email not configured — add Resend API key and recipient.', 'info');
-    return;
+    toast('Email not configured — add Resend API key and recipient.', 'info'); return;
   }
   try {
-    const res = await fetch('/send-email', {
+    const res  = await fetch('/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        resendKey: settings.resendKey,
-        to:        settings.email,
-        subject,
-        message
-      })
+      body: JSON.stringify({ resendKey: settings.resendKey, to: settings.email, subject, message })
     });
     const data = await res.json();
     if (data.ok) toast('Email sent! 📧', 'success');
@@ -753,13 +815,11 @@ async function sendEmail(subject, message) {
 
 // ── Auto-check ────────────────────────────────────────────────────────────────
 let autoCheckTimer = null;
-
 function startAutoCheck() {
   if (autoCheckTimer) clearInterval(autoCheckTimer);
   const mins = parseInt(document.getElementById('check-interval').value) || 60;
   autoCheckTimer = setInterval(fetchAll, mins * 60 * 1000);
 }
-
 document.getElementById('check-interval').addEventListener('change', startAutoCheck);
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -778,8 +838,9 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const name = tab.dataset.tab;
-    document.getElementById('content-grades').style.display = name === 'grades' ? 'block' : 'none';
-    document.getElementById('content-tasks').style.display  = name === 'tasks'  ? 'block' : 'none';
+    document.getElementById('content-grades').style.display  = name==='grades'  ? 'block' : 'none';
+    document.getElementById('content-tasks').style.display   = name==='tasks'   ? 'block' : 'none';
+    document.getElementById('content-missing').style.display = name==='missing' ? 'block' : 'none';
   });
 });
 
@@ -788,29 +849,21 @@ document.getElementById('settings-toggle').addEventListener('click', () => {
   const body  = document.getElementById('settings-body');
   const label = document.getElementById('settings-toggle-label');
   const hide  = body.style.display !== 'none';
-  body.style.display  = hide ? 'none' : 'block';
-  label.textContent   = hide ? '▼ show' : '▲ hide';
+  body.style.display = hide ? 'none' : 'block';
+  label.textContent  = hide ? '▼ show' : '▲ hide';
 });
 
 // ── Button wiring ─────────────────────────────────────────────────────────────
-document.getElementById('save-btn').addEventListener('click', () => {
-  saveSettings();
-  fetchAll();
-  startAutoCheck();
-});
-
+document.getElementById('save-btn').addEventListener('click', () => { saveSettings(); fetchAll(); startAutoCheck(); });
 document.getElementById('refresh-btn').addEventListener('click', fetchAll);
-
 document.getElementById('test-email-btn').addEventListener('click', () => {
   saveSettings();
   sendEmail('🧪 Canvas Tracker Test', 'If you received this, email notifications are working correctly!');
 });
-
-document.getElementById('send-summary-btn').addEventListener('click', sendSummaryEmail);
-
+document.getElementById('send-summary-btn').addEventListener('click', () => sendSummaryEmail(false));
 document.getElementById('clear-btn').addEventListener('click', () => {
   if (!confirm('Clear all saved settings and cached data?')) return;
-  ['cvt_settings','cvt_grades','cvt_notified','cvt_last'].forEach(k => LS.del(k));
+  ['cvt_settings','cvt_grades','cvt_notified','cvt_last','cvt_digest_date'].forEach(k => LS.del(k));
   settings = {};
   loadSettingsIntoForm();
   document.getElementById('grades-grid').innerHTML = '';
@@ -826,9 +879,7 @@ document.getElementById('clear-btn').addEventListener('click', () => {
 loadSettingsIntoForm();
 const last = LS.get('cvt_last');
 if (last) document.getElementById('last-checked').textContent = `Last checked: ${last}`;
-
 if (settings.canvasUrl && settings.apiToken) {
-  // Already configured — collapse settings and auto-load
   document.getElementById('settings-body').style.display = 'none';
   document.getElementById('settings-toggle-label').textContent = '▼ show';
   fetchAll();
