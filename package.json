@@ -1,0 +1,12 @@
+{
+  "name": "canvas-tracker",
+  "version": "1.0.0",
+  "description": "Canvas grade and assignment tracker",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

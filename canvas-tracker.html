@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #4f8ef7;
+      --accent2: #7c5cbf;
+      --green: #3ecf8e;
+      --yellow: #f5a623;
+      --red: #e05252;
+      --text: #e2e8f0;
+      --muted: #6b7280;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .last-checked { font-size: 0.75rem; color: var(--muted); }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:hover { opacity: 0.85; }
+    button:active { transform: scale(0.97); }
+
+    .btn-primary  { background: var(--accent); color: #fff; padding: 8px 16px; }
+    .btn-secondary{ background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; }
+    .btn-danger   { background: var(--red); color: #fff; padding: 8px 16px; }
+
+    /* Setup panel */
+    #setup-banner {
+      background: linear-gradient(135deg, #1e2235, #1a1d27);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    #setup-banner h2 { font-size: 1rem; margin-bottom: 4px; color: var(--accent); }
+
+    .settings-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .settings-toggle span { font-size: 0.85rem; color: var(--muted); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .form-row { grid-column: 1 / -1; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-group input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+    .form-group input::placeholder { color: var(--muted); }
+
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 4px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      grid-column: 1 / -1;
+    }
+    .section-divider::before, .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .form-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+    .setup-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 14px;
+      line-height: 1.7;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+    .setup-note a { color: var(--accent); text-decoration: none; }
+    .setup-note code {
+      background: var(--bg);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85em;
+    }
+
+    /* Status bar */
+    .notif-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .notif-panel label { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    .notif-panel input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      outline: none;
+      width: 64px;
+    }
+    .notif-item { display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; box-shadow: 0 0 6px var(--green); }
+    .status-dot.off { background: var(--muted); box-shadow: none; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 20px; border-radius: 8px; font-size: 0.875rem; }
+    .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Cards */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+    .course-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+    .course-card:hover { border-color: var(--accent); }
+    .course-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .grade-display { display: flex; align-items: baseline; gap: 8px; }
+    .grade-letter { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .grade-percent { font-size: 0.875rem; color: var(--muted); }
+    .grade-bar { height: 4px; background: var(--border); border-radius: 4px; margin-top: 10px; overflow: hidden; }
+    .grade-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+    /* Assignment list */
+    .assignment-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .assignment-card:hover { border-color: var(--accent); }
+    .due-badge { min-width: 60px; text-align: center; border-radius: 8px; padding: 5px 8px; font-size: 0.7rem; font-weight: 700; line-height: 1.4; }
+    .due-badge.urgent { background: rgba(224,82,82,0.15);  color: var(--red);    border: 1px solid rgba(224,82,82,0.3); }
+    .due-badge.soon   { background: rgba(245,166,35,0.15); color: var(--yellow); border: 1px solid rgba(245,166,35,0.3); }
+    .due-badge.ok     { background: rgba(62,207,142,0.1);  color: var(--green);  border: 1px solid rgba(62,207,142,0.25); }
+    .assignment-info { flex: 1; min-width: 0; }
+    .assignment-name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .assignment-course { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .assignment-points { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.875rem; }
+
+    /* Toast */
+    #toast-container { position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      max-width: 340px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: slideIn 0.2s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.4;
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    .toast.info    { border-left: 3px solid var(--accent); }
+    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Spinner */
+    #loading { text-align: center; padding: 48px; color: var(--muted); display: none; }
+    #loading.visible { display: block; }
+    .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* CORS note */
+    #cors-note {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(245,166,35,0.08);
+      border: 1px solid rgba(245,166,35,0.3);
+      font-size: 0.8rem;
+      color: var(--yellow);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 14px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- Header -->
+<div class="header">
+  <h1>Canvas Tracker</h1>
+  <div class="header-actions">
+    <span class="last-checked" id="last-checked"></span>
+    <button class="btn-primary" id="refresh-btn">⟳ Refresh</button>
+  </div>
+</div>
+
+<!-- Setup panel -->
+<div id="setup-banner">
+  <div class="settings-toggle" id="settings-toggle">
+    <h2>⚡ Setup</h2>
+    <span id="settings-toggle-label">▲ hide</span>
+  </div>
+
+  <div id="settings-body">
+    <div class="form-grid">
+      <div class="form-group form-row">
+        <label>Canvas URL</label>
+        <input type="url" id="canvas-url" placeholder="https://yourschool.instructure.com" />
+      </div>
+      <div class="form-group form-row">
+        <label>API Token</label>
+        <input type="password" id="api-token" placeholder="Paste your Canvas API token" autocomplete="off" />
+      </div>
+
+      <div class="section-divider">Email Notifications (optional)</div>
+
+      <div class="form-group">
+        <label>Your Email (receives alerts)</label>
+        <input type="email" id="notify-email" placeholder="you@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Alert when due within (days)</label>
+        <input type="number" id="days-alert" value="3" min="1" max="14" />
+      </div>
+      <div class="form-group">
+        <label>EmailJS Public Key</label>
+        <input type="text" id="ejs-public-key" placeholder="From emailjs.com dashboard" />
+      </div>
+      <div class="form-group">
+        <label>EmailJS Service ID</label>
+        <input type="text" id="ejs-service-id" placeholder="service_xxxxxxx" />
+      </div>
+      <div class="form-group form-row">
+        <label>EmailJS Template ID</label>
+        <input type="text" id="ejs-template-id" placeholder="template_xxxxxxx" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary"   id="save-btn">Save & Connect</button>
+      <button class="btn-secondary" id="test-email-btn">Test Email</button>
+      <button class="btn-danger"    id="clear-btn">Clear All</button>
+    </div>
+
+    <div class="setup-note">
+      <strong>API Token:</strong> Canvas → Account → Settings → Approved Integrations → + New Access Token. Never share this token with anyone.<br><br>
+      <strong>Email alerts (free):</strong>
+      1. Sign up at <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> &nbsp;
+      2. Add an Email Service (Gmail etc.) &nbsp;
+      3. Create a Template — body should contain <code>{{subject}}</code> and <code>{{message}}</code> &nbsp;
+      4. Copy your <strong>Public Key</strong>, <strong>Service ID</strong>, and <strong>Template ID</strong> into the fields above.
+    </div>
+
+    <div id="cors-note">
+      <strong>⚠️ CORS Error:</strong> Your browser blocked the Canvas request because this file is opened directly (file://).<br>
+      Fix: open a terminal, <code>cd</code> to this folder, run <code>python3 -m http.server 8080</code>,
+      then visit <code>http://localhost:8080/canvas-tracker.html</code>
+    </div>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div class="notif-panel" id="notif-panel" style="display:none;">
+  <span>
+    <span class="status-dot off" id="status-dot"></span>
+    <span id="status-text" style="font-size:0.85rem;">—</span>
+  </span>
+  <div class="notif-item">
+    <label>Auto-check every</label>
+    <input type="number" id="check-interval" value="60" min="5" max="1440" />
+    <span style="font-size:0.8rem;color:var(--muted);">min</span>
+  </div>
+  <button class="btn-secondary" style="font-size:0.8rem;padding:6px 12px;" id="send-summary-btn">📧 Email Summary</button>
+</div>
+
+<!-- Tabs -->
+<div class="tabs" id="tabs" style="display:none;">
+  <button class="tab active" data-tab="grades">📊 Grades</button>
+  <button class="tab" data-tab="tasks">📋 Upcoming Tasks</button>
+</div>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p style="margin-top:12px;font-size:0.85rem;">Loading from Canvas...</p>
+</div>
+
+<!-- Grade content -->
+<div id="content-grades">
+  <div class="cards-grid" id="grades-grid"></div>
+</div>
+
+<!-- Task content -->
+<div id="content-tasks" style="display:none;">
+  <div id="tasks-list"></div>
+</div>
+
+<script>
+// ── Storage ─────────────────────────────────────────────────────────────────
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+let settings = LS.get('cvt_settings') || {};
+
+function saveSettings() {
+  settings = {
+    canvasUrl:     document.getElementById('canvas-url').value.trim().replace(/\/$/, ''),
+    apiToken:      document.getElementById('api-token').value.trim(),
+    email:         document.getElementById('notify-email').value.trim(),
+    daysAlert:     parseInt(document.getElementById('days-alert').value) || 3,
+    ejsPublicKey:  document.getElementById('ejs-public-key').value.trim(),
+    ejsServiceId:  document.getElementById('ejs-service-id').value.trim(),
+    ejsTemplateId: document.getElementById('ejs-template-id').value.trim(),
+    checkInterval: parseInt(document.getElementById('check-interval').value) || 60,
+  };
+  LS.set('cvt_settings', settings);
+  if (settings.ejsPublicKey) emailjs.init(settings.ejsPublicKey);
+  toast('Settings saved!', 'success');
+}
+
+function loadSettingsIntoForm() {
+  const s = settings;
+  document.getElementById('canvas-url').value      = s.canvasUrl     || '';
+  document.getElementById('api-token').value       = s.apiToken      || '';
+  document.getElementById('notify-email').value    = s.email         || '';
+  document.getElementById('days-alert').value      = s.daysAlert     || 3;
+  document.getElementById('ejs-public-key').value  = s.ejsPublicKey  || '';
+  document.getElementById('ejs-service-id').value  = s.ejsServiceId  || '';
+  document.getElementById('ejs-template-id').value = s.ejsTemplateId || '';
+  document.getElementById('check-interval').value  = s.checkInterval || 60;
+  if (s.ejsPublicKey) emailjs.init(s.ejsPublicKey);
+}
+
+// ── Canvas API ────────────────────────────────────────────────────────────────
+async function apiGet(path) {
+  const res = await fetch('/canvas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      url:   `${settings.canvasUrl}/api/v1${path}`,
+      token: settings.apiToken
+    })
+  });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Invalid API token — check your token in settings.');
+    if (res.status === 404) throw new Error('Canvas URL not found — check your school URL.');
+    throw new Error(`Canvas API error: ${res.status}`);
+  }
+  return res.json();
+}
+
+async function getCourses() {
+  return apiGet('/courses?enrollment_state=active&include[]=total_scores&include[]=current_grading_period_scores&include[]=favorites&per_page=50');
+}
+
+async function getAssignments(courseId) {
+  return apiGet(`/courses/${courseId}/assignments?bucket=upcoming&per_page=50&include[]=submission&order_by=due_at`);
+}
+
+async function getEnrollmentGrades(courseId) {
+  try {
+    const enrollments = await apiGet(`/courses/${courseId}/enrollments?type[]=StudentEnrollment&user_id=self&include[]=grades&per_page=10`);
+    return enrollments[0] || null;
+  } catch { return null; }
+}
+
+async function getMasteryGrades(courseId) {
+  try {
+    return await apiGet(`/courses/${courseId}/outcome_rollups?user_ids[]=self&include[]=outcomes&per_page=100`);
+  } catch { return null; }
+}
+
+// ── Grade helpers ─────────────────────────────────────────────────────────────
+function letterGrade(pct) {
+  if (pct == null) return '—';
+  if (pct >= 93) return 'A';  if (pct >= 90) return 'A-';
+  if (pct >= 87) return 'B+'; if (pct >= 83) return 'B';
+  if (pct >= 80) return 'B-'; if (pct >= 77) return 'C+';
+  if (pct >= 73) return 'C';  if (pct >= 70) return 'C-';
+  if (pct >= 67) return 'D+'; if (pct >= 60) return 'D';
+  return 'F';
+}
+
+function gradeColor(pct) {
+  if (pct == null) return 'var(--muted)';
+  if (pct >= 80) return 'var(--green)';
+  if (pct >= 70) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+// Mastery label + color from a 0–4 scale (or custom mastery_points scale)
+function masteryLabel(score, masteryPoints) {
+  const mp = masteryPoints || 3;
+  const ratio = score / mp;
+  if (score == null) return { label: '—', color: 'var(--muted)' };
+  if (ratio >= 1.15) return { label: 'Exceeds',    color: 'var(--green)' };
+  if (ratio >= 1.0)  return { label: 'Mastery',    color: 'var(--green)' };
+  if (ratio >= 0.7)  return { label: 'Approaching',color: 'var(--yellow)' };
+  return               { label: 'Beginning',  color: 'var(--red)' };
+}
+
+// ── Due date helpers ──────────────────────────────────────────────────────────
+function dueBadge(dueAt) {
+  if (!dueAt) return { cls: 'ok', label: 'No date' };
+  const diff = Math.ceil((new Date(dueAt) - Date.now()) / 86400000);
+  if (diff < 0)   return { cls: 'ok',     label: 'Past due' };
+  if (diff === 0) return { cls: 'urgent', label: 'TODAY' };
+  if (diff === 1) return { cls: 'urgent', label: 'Tomorrow' };
+  if (diff <= (settings.daysAlert || 3)) return { cls: 'soon', label: `${diff} days` };
+  return { cls: 'ok', label: `${diff} days` };
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+// ── Render grades ─────────────────────────────────────────────────────────────
+function renderGrades(courses, gradeMap, masteryMap) {
+  const grid = document.getElementById('grades-grid');
+  const before = LS.get('cvt_grades') || {};
+  const now = {};
+  const changes = [];
+
+  const cards = courses.map(c => {
+    const name = c.name || c.course_code || `Course ${c.id}`;
+
+    // Try detailed enrollment grades first, then fallback to course enrollments
+    const enrollment   = gradeMap[c.id] || c.enrollments?.find(e => e.type === 'student');
+    const pct          = enrollment?.grades?.current_score ?? enrollment?.computed_current_score ?? null;
+    const letter       = enrollment?.grades?.current_grade || enrollment?.computed_current_grade || null;
+    const masteryData  = masteryMap[c.id];
+
+    // Determine if this course uses mastery grading
+    const hasMastery = masteryData?.rollups?.length > 0 && pct == null && !letter;
+
+    let cardHTML;
+
+    if (hasMastery) {
+      // ── Mastery grading ──
+      const scores = masteryData.rollups[0]?.scores || [];
+      const rated  = scores.filter(s => s.score != null);
+      const avg    = rated.length ? rated.reduce((a, s) => a + s.score, 0) / rated.length : null;
+      const mp     = scores[0]?.outcome?.mastery_points || 3;
+      const { label, color } = masteryLabel(avg, mp);
+      const barPct = avg != null ? Math.min(100, (avg / (mp * 1.25)) * 100) : 0;
+
+      now[c.id] = { pct: avg, letter: label, name, mastery: true };
+      if (before[c.id]?.pct !== avg && avg != null && before[c.id]?.pct != null) {
+        changes.push(`${name}: ${before[c.id].label} → ${label}`);
+      }
+
+      cardHTML = `
+        <div class="course-card">
+          <div class="course-name" title="${name}">${name}</div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
+            <span style="font-size:1.3rem;font-weight:800;color:${color}">${label}</span>
+            <span style="font-size:0.8rem;color:var(--muted)">${avg != null ? avg.toFixed(2) + ' / ' + mp + ' pts avg' : 'No scores yet'}</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">${rated.length} outcome${rated.length !== 1 ? 's' : ''} scored</div>
+          <div class="grade-bar"><div class="grade-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
+        </div>`;
+    } else {
+      // ── Traditional / percentage grading ──
+      const displayLetter = letter || letterGrade(pct);
+      const color  = gradeColor(pct);
+      const barPct = pct != null ? Math.min(100, pct) : 0;
+
+      now[c.id] = { pct, letter: displayLetter, name };
+      if (before[c.id] && before[c.id].pct !== pct && pct != null && before[c.id].pct != null) {
+        changes.push(`${name}: ${before[c.id].pct?.toFixed(1) ?? '?'}% → ${pct.toFixed(1)}%`);
+      }
+
+      cardHTML = `
+        <div class="course-card">
+          <div class="course-name" title="${name}">${name}</div>
+          <div class="grade-display">
+            <span class="grade-letter" style="color:${color}">${displayLetter}</span>
+            <span class="grade-percent">${pct != null ? pct.toFixed(1) + '%' : 'No grade yet'}</span>
+          </div>
+          <div class="grade-bar"><div class="grade-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
+        </div>`;
+    }
+
+    return cardHTML;
+  });
+
+  grid.innerHTML = cards.length
+    ? cards.join('')
+    : `<div class="empty-state"><div class="icon">📭</div><p>No active courses found.</p></div>`;
+
+  LS.set('cvt_grades', now);
+  if (changes.length) notifyGradeChanges(changes);
+}
+
+// ── Render tasks ──────────────────────────────────────────────────────────────
+let allAssignments = [];
+
+function renderTasks(assignments) {
+  allAssignments = assignments
+    .filter(a => a.due_at && new Date(a.due_at) > new Date())
+    .sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+
+  const list = document.getElementById('tasks-list');
+  if (!allAssignments.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>No upcoming assignments. You're all caught up!</p></div>`;
+    return;
+  }
+
+  const items = allAssignments.map(a => {
+    const badge = dueBadge(a.due_at);
+    const pts   = a.points_possible ? `${a.points_possible} pts` : '';
+    const date  = fmtDate(a.due_at);
+    return `
+      <div class="assignment-card">
+        <div class="due-badge ${badge.cls}">${date.split(',')[0]}<br><strong>${badge.label}</strong></div>
+        <div class="assignment-info">
+          <div class="assignment-name" title="${a.name}">${a.name}</div>
+          <div class="assignment-course">${a._course || ''}</div>
+        </div>
+        <div class="assignment-points">${pts}</div>
+      </div>`;
+  });
+
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">${items.join('')}</div>`;
+}
+
+// ── Main fetch ────────────────────────────────────────────────────────────────
+let isFetching = false;
+
+async function fetchAll() {
+  if (isFetching) return;
+  if (!settings.canvasUrl || !settings.apiToken) {
+    toast('Please save your Canvas URL and API token first.', 'error');
+    return;
+  }
+
+  isFetching = true;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('refresh-btn').disabled = true;
+  document.getElementById('status-dot').className = 'status-dot off';
+  document.getElementById('status-text').textContent = 'Loading...';
+  document.getElementById('cors-note').style.display = 'none';
+
+  try {
+    const courses = await getCourses();
+
+    // Fetch detailed grades + mastery data + assignments for all courses in parallel
+    const [gradeResults, masteryResults, assignmentArrays] = await Promise.all([
+      Promise.all(courses.map(async c => ({ id: c.id, data: await getEnrollmentGrades(c.id) }))),
+      Promise.all(courses.map(async c => ({ id: c.id, data: await getMasteryGrades(c.id) }))),
+      Promise.all(courses.map(async c => {
+        try {
+          const list = await getAssignments(c.id);
+          return list.map(a => ({ ...a, _course: c.name || c.course_code }));
+        } catch { return []; }
+      }))
+    ]);
+
+    const gradeMap   = Object.fromEntries(gradeResults.map(r => [r.id, r.data]));
+    const masteryMap = Object.fromEntries(masteryResults.map(r => [r.id, r.data]));
+
+    renderGrades(courses, gradeMap, masteryMap);
+    renderTasks(assignmentArrays.flat());
+
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('last-checked').textContent = `Last checked: ${now}`;
+    LS.set('cvt_last', now);
+
+    document.getElementById('tabs').style.display         = 'flex';
+    document.getElementById('notif-panel').style.display  = 'flex';
+    document.getElementById('status-dot').className       = 'status-dot';
+    document.getElementById('status-text').textContent    = `${courses.length} course${courses.length !== 1 ? 's' : ''} loaded`;
+    toast(`Loaded ${courses.length} courses`, 'success');
+
+    checkDueSoonAndNotify(assignmentArrays.flat());
+
+  } catch (err) {
+    document.getElementById('status-dot').className    = 'status-dot off';
+    document.getElementById('status-text').textContent = 'Error';
+    if (err.message.toLowerCase().includes('failed to fetch') || err.message.toLowerCase().includes('networkerror')) {
+      toast('Network error — Canvas may be blocking this request. See the CORS note in settings.', 'error');
+      document.getElementById('cors-note').style.display = 'block';
+      // Expand settings so user sees the note
+      document.getElementById('settings-body').style.display = 'block';
+      document.getElementById('settings-toggle-label').textContent = '▲ hide';
+    } else {
+      toast(err.message, 'error');
+    }
+  } finally {
+    isFetching = false;
+    document.getElementById('loading').classList.remove('visible');
+    document.getElementById('refresh-btn').disabled = false;
+  }
+}
+
+// ── Email ────────────────────────────────────────────────────────────────────
+// Track notified IDs per day so alerts re-fire each new day
+const TODAY = new Date().toDateString();
+let notifState = LS.get('cvt_notified') || {};
+if (notifState.date !== TODAY) notifState = { date: TODAY, ids: [] }; // reset daily
+
+function checkDueSoonAndNotify(assignments) {
+  if (!settings.email || !settings.ejsPublicKey) return;
+  const threshold = settings.daysAlert || 3;
+
+  const dueSoon = assignments.filter(a => {
+    if (!a.due_at) return false;
+    const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
+    return diff >= 0 && diff <= threshold && !notifState.ids.includes(String(a.id));
+  });
+
+  if (!dueSoon.length) return;
+
+  const lines = dueSoon.map(a => {
+    const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
+    return `• ${a.name} (${a._course}) — due ${diff === 0 ? 'TODAY' : 'in ' + diff + ' day(s)'} on ${fmtDate(a.due_at)}`;
+  }).join('\n');
+
+  sendEmail(`⚠️ ${dueSoon.length} assignment(s) due soon`, `Upcoming assignments:\n\n${lines}\n\nStay on top of it! 📚`);
+  notifState.ids = [...notifState.ids, ...dueSoon.map(a => String(a.id))];
+  LS.set('cvt_notified', notifState);
+}
+
+function notifyGradeChanges(changes) {
+  if (!settings.email || !settings.ejsPublicKey) return;
+  sendEmail('📊 Grade update', `Your grades have changed:\n\n${changes.join('\n')}`);
+}
+
+function sendSummaryEmail() {
+  if (!settings.email || !settings.ejsPublicKey) {
+    toast('Configure email settings first.', 'error');
+    return;
+  }
+  if (!allAssignments.length) {
+    toast('No data loaded yet — click Refresh first, then try again.', 'error');
+    return;
+  }
+  const grades = LS.get('cvt_grades') || {};
+  const gradeLines = Object.values(grades)
+    .map(g => {
+      if (g.mastery) return `• ${g.name}: ${g.letter} (avg ${g.pct != null ? g.pct.toFixed(2) : 'N/A'})`;
+      return `• ${g.name}: ${g.letter} (${g.pct != null ? g.pct.toFixed(1) + '%' : 'N/A'})`;
+    })
+    .join('\n') || 'No grades available.';
+
+  const upcoming = allAssignments
+    .map(a => {
+      const diff = Math.ceil((new Date(a.due_at) - Date.now()) / 86400000);
+      const when = diff === 0 ? 'TODAY' : diff === 1 ? 'Tomorrow' : `in ${diff} days`;
+      return `• ${a.name} (${a._course})\n  Due ${when} — ${fmtDate(a.due_at)}`;
+    })
+    .join('\n') || 'No upcoming tasks.';
+
+  sendEmail('📋 Canvas Summary', `GRADES\n──────\n${gradeLines}\n\nUPCOMING TASKS\n──────────────\n${upcoming}`);
+}
+
+function sendEmail(subject, message) {
+  if (!settings.ejsPublicKey || !settings.ejsServiceId || !settings.ejsTemplateId) {
+    toast('EmailJS not fully configured — skipping email.', 'info');
+    return;
+  }
+  emailjs.send(settings.ejsServiceId, settings.ejsTemplateId, {
+    subject,
+    message,
+    to_email:  settings.email,
+    from_name: 'Canvas Tracker'
+  })
+  .then(() => toast('Email sent! 📧', 'success'))
+  .catch(err => toast('Email failed: ' + (err.text || err.message || 'unknown error'), 'error'));
+}
+
+// ── Auto-check ────────────────────────────────────────────────────────────────
+let autoCheckTimer = null;
+
+function startAutoCheck() {
+  if (autoCheckTimer) clearInterval(autoCheckTimer);
+  const mins = parseInt(document.getElementById('check-interval').value) || 60;
+  autoCheckTimer = setInterval(fetchAll, mins * 60 * 1000);
+}
+
+document.getElementById('check-interval').addEventListener('change', startAutoCheck);
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 6000);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const name = tab.dataset.tab;
+    document.getElementById('content-grades').style.display = name === 'grades' ? 'block' : 'none';
+    document.getElementById('content-tasks').style.display  = name === 'tasks'  ? 'block' : 'none';
+  });
+});
+
+// ── Settings toggle ───────────────────────────────────────────────────────────
+document.getElementById('settings-toggle').addEventListener('click', () => {
+  const body  = document.getElementById('settings-body');
+  const label = document.getElementById('settings-toggle-label');
+  const hide  = body.style.display !== 'none';
+  body.style.display  = hide ? 'none' : 'block';
+  label.textContent   = hide ? '▼ show' : '▲ hide';
+});
+
+// ── Button wiring ─────────────────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', () => {
+  saveSettings();
+  fetchAll();
+  startAutoCheck();
+});
+
+document.getElementById('refresh-btn').addEventListener('click', fetchAll);
+
+document.getElementById('test-email-btn').addEventListener('click', () => {
+  saveSettings();
+  sendEmail('🧪 Canvas Tracker Test', 'If you received this, email notifications are working correctly!');
+});
+
+document.getElementById('send-summary-btn').addEventListener('click', sendSummaryEmail);
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  if (!confirm('Clear all saved settings and cached data?')) return;
+  ['cvt_settings','cvt_grades','cvt_notified','cvt_last'].forEach(k => LS.del(k));
+  settings = {};
+  loadSettingsIntoForm();
+  document.getElementById('grades-grid').innerHTML = '';
+  document.getElementById('tasks-list').innerHTML  = '';
+  document.getElementById('tabs').style.display        = 'none';
+  document.getElementById('notif-panel').style.display = 'none';
+  document.getElementById('settings-body').style.display = 'block';
+  document.getElementById('settings-toggle-label').textContent = '▲ hide';
+  toast('Cleared.', 'info');
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadSettingsIntoForm();
+const last = LS.get('cvt_last');
+if (last) document.getElementById('last-checked').textContent = `Last checked: ${last}`;
+
+if (settings.canvasUrl && settings.apiToken) {
+  // Already configured — collapse settings and auto-load
+  document.getElementById('settings-body').style.display = 'none';
+  document.getElementById('settings-toggle-label').textContent = '▼ show';
+  fetchAll();
+  startAutoCheck();
+}
+</script>
+</body>
+</html>
