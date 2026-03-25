@@ -156,7 +156,7 @@
     <h3>🧮 Grade Calculator</h3>
     <div class="modal-row">
       <label for="calc-course">Course</label>
-      <input type="text" id="calc-course" readonly style="cursor:default;" />
+      <select id="calc-course" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:0.875rem;outline:none;cursor:pointer;"></select>
     </div>
     <div class="modal-row">
       <label for="calc-current">Current Grade (%)</label>
@@ -601,13 +601,24 @@ function renderMissing(missing) {
 
 // ── Grade Calculator ──────────────────────────────────────────────────────────
 function openCalc(name, pct) {
-  document.getElementById('calc-course').value  = name;
+  const sel = document.getElementById('calc-course');
+  sel.innerHTML = courseGradeData.map(c =>
+    `<option value="${c.name}" data-pct="${c.pct ?? ''}">${c.name}</option>`
+  ).join('');
+  sel.value = name;
   document.getElementById('calc-current').value = pct != null ? parseFloat(pct).toFixed(1) : '';
   document.getElementById('calc-weight').value  = '';
   document.getElementById('calc-target').value  = '';
   document.getElementById('calc-result').innerHTML = 'Enter values above to calculate.';
   document.getElementById('calc-modal').classList.remove('hidden');
 }
+
+document.getElementById('calc-course').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  const pct = opt.dataset.pct;
+  document.getElementById('calc-current').value = pct !== '' ? parseFloat(pct).toFixed(1) : '';
+  document.getElementById('calc-result').innerHTML = 'Enter values above to calculate.';
+});
 
 document.getElementById('calc-close').addEventListener('click', () =>
   document.getElementById('calc-modal').classList.add('hidden'));
