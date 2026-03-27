@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Canvas Tracker</title>
+  <title>Scholr</title>
   <style>
     :root {
       --bg: #0f1117;
@@ -336,7 +336,7 @@
 <!-- ── Sidebar ── -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <div class="sidebar-logo-title">Canvas Tracker</div>
+    <div class="sidebar-logo-title">Scholr</div>
     <div class="sidebar-logo-sub">Grade & assignment monitor</div>
   </div>
   <div class="sidebar-nav">
@@ -396,7 +396,7 @@
     <!-- HOME -->
     <div id="view-home">
       <div class="welcome-card" id="welcome-card" style="display:none;">
-        <h2>👋 Welcome to Canvas Tracker</h2>
+        <h2>👋 Welcome to Scholr</h2>
         <p>Connect your Canvas account to see your grades, upcoming assignments, and get email alerts when things are due soon.</p>
         <button class="btn-primary" onclick="switchView('settings')">Get Started →</button>
       </div>
@@ -1257,7 +1257,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
 document.getElementById('refresh-btn').addEventListener('click', fetchAll);
 document.getElementById('test-email-btn').addEventListener('click', () => {
   saveSettings();
-  sendEmail('🧪 Canvas Tracker Test', 'If you received this, email notifications are working correctly!');
+  sendEmail('🧪 Scholr Test', 'If you received this, email notifications are working correctly!');
 });
 document.getElementById('send-summary-btn').addEventListener('click', () => sendSummaryEmail(false));
 document.getElementById('send-summary-btn-settings').addEventListener('click', () => {

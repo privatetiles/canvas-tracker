@@ -11,7 +11,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
-    title: 'Canvas Tracker',
+    title: 'Scholr',
     show: false,
   });
 

@@ -1,0 +1,2293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERMINAL BREACH</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+  /* ─── RESET & BASE ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:      #00ff41;
+    --green-dim:  #00aa2a;
+    --green-dark: #003010;
+    --red:        #ff003c;
+    --yellow:     #ffd700;
+    --cyan:       #00ffff;
+    --magenta:    #ff00ff;
+    --gray:       #555;
+    --white:      #e0e0e0;
+    --bg:         #0a0a0a;
+    --panel:      #0d1a0d;
+    --border:     #00ff4133;
+    --glow:       0 0 10px #00ff41, 0 0 20px #00ff4155;
+    --glow-red:   0 0 10px #ff003c, 0 0 20px #ff003c55;
+    --glow-cyan:  0 0 10px #00ffff, 0 0 20px #00ffff55;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--green);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    font-size: 14px;
+    overflow: hidden;
+  }
+
+  /* ─── SCANLINES ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ─── CRT FLICKER ─── */
+  @keyframes flicker {
+    0%,100%{ opacity:1; }
+    92%    { opacity:1; }
+    93%    { opacity:0.85; }
+    94%    { opacity:1; }
+    96%    { opacity:0.9; }
+    97%    { opacity:1; }
+  }
+  body { animation: flicker 8s infinite; }
+
+  /* ─── LAYOUT ─── */
+  #app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 280px 1fr 260px;
+    grid-template-areas:
+      "header  header  header"
+      "sidebar main    info"
+      "footer  footer  footer";
+    height: 100vh;
+    gap: 1px;
+    background: #001a00;
+  }
+
+  /* ─── HEADER ─── */
+  #header {
+    grid-area: header;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  #logo {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: var(--green);
+    text-shadow: var(--glow);
+    letter-spacing: 4px;
+    white-space: nowrap;
+  }
+
+  #logo span { color: var(--red); text-shadow: var(--glow-red); }
+
+  .stat-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 70px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    color: var(--yellow);
+    text-shadow: 0 0 8px var(--yellow);
+    font-family: 'VT323', monospace;
+  }
+
+  .stat-value.green  { color: var(--green); text-shadow: var(--glow); }
+  .stat-value.cyan   { color: var(--cyan);  text-shadow: var(--glow-cyan); }
+  .stat-value.red    { color: var(--red);   text-shadow: var(--glow-red); }
+  .stat-value.magenta{ color: var(--magenta); text-shadow: 0 0 8px var(--magenta); }
+
+  /* XP Bar */
+  #xp-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 120px;
+  }
+
+  #xp-label {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  #xp-bar {
+    height: 8px;
+    background: #001500;
+    border: 1px solid var(--green-dim);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  #xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    box-shadow: var(--glow);
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  /* ─── SIDEBAR ─── */
+  #sidebar {
+    grid-area: sidebar;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gray);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  /* Nav Tabs */
+  #nav-tabs {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    gap: 2px;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--green-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 8px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 3px solid transparent;
+    letter-spacing: 1px;
+  }
+
+  .nav-btn:hover, .nav-btn.active {
+    color: var(--green);
+    background: rgba(0,255,65,0.08);
+    border-left-color: var(--green);
+    text-shadow: var(--glow);
+  }
+
+  .nav-btn .nav-icon { font-size: 16px; width: 20px; }
+  .nav-btn .nav-badge {
+    margin-left: auto;
+    background: var(--green);
+    color: #000;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  /* Sidebar sub-panels */
+  #target-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-dim) transparent;
+  }
+
+  .target-card {
+    border: 1px solid var(--border);
+    background: rgba(0,255,65,0.03);
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 3px;
+  }
+
+  .target-card:hover, .target-card.selected {
+    border-color: var(--green);
+    background: rgba(0,255,65,0.08);
+    box-shadow: var(--glow);
+  }
+
+  .target-card.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: var(--gray);
+  }
+
+  .target-name {
+    font-size: 12px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .target-meta {
+    font-size: 10px;
+    color: var(--gray);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .target-defense {
+    color: var(--red);
+    font-size: 10px;
+  }
+
+  .target-mult {
+    color: var(--yellow);
+    font-size: 10px;
+  }
+
+  .def-bar {
+    height: 3px;
+    background: #001500;
+    margin-top: 4px;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .def-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--red));
+  }
+
+  /* ─── MAIN TERMINAL ─── */
+  #main {
+    grid-area: main;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Tab panels */
+  .tab-panel {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .tab-panel.active { display: flex; }
+
+  /* Terminal Output */
+  #terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-dim) transparent;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .t-line { display: flex; align-items: flex-start; gap: 8px; margin: 1px 0; }
+  .t-prefix { color: var(--gray); white-space: nowrap; flex-shrink: 0; }
+  .t-text   { color: var(--green); word-break: break-all; }
+
+  .t-text.red     { color: var(--red); }
+  .t-text.yellow  { color: var(--yellow); }
+  .t-text.cyan    { color: var(--cyan); }
+  .t-text.magenta { color: var(--magenta); }
+  .t-text.gray    { color: var(--gray); }
+  .t-text.white   { color: var(--white); }
+  .t-text.bold    { font-weight: bold; text-shadow: var(--glow); }
+
+  /* Input Line */
+  #input-area {
+    border-top: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+
+  #input-prompt {
+    color: var(--green);
+    white-space: nowrap;
+    text-shadow: var(--glow);
+    font-size: 14px;
+  }
+
+  #terminal-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    caret-color: var(--green);
+    text-shadow: var(--glow);
+  }
+
+  #terminal-input::placeholder { color: var(--gray); }
+
+  #input-status {
+    font-size: 10px;
+    color: var(--gray);
+    white-space: nowrap;
+  }
+
+  /* Autocomplete hints */
+  #autocomplete {
+    padding: 4px 16px 6px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--panel);
+    border-top: 1px solid #001500;
+    min-height: 24px;
+  }
+
+  .hint-chip {
+    font-size: 10px;
+    color: var(--green-dim);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.1s;
+    letter-spacing: 1px;
+  }
+
+  .hint-chip:hover {
+    color: var(--green);
+    border-color: var(--green);
+    text-shadow: var(--glow);
+  }
+
+  /* ─── HACK PANEL (dict/shop/log) ─── */
+  #hack-panel, #shop-panel, #log-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-dim) transparent;
+  }
+
+  /* Hack Cards */
+  .hack-card {
+    border: 1px solid var(--border);
+    background: rgba(0,255,65,0.02);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .hack-card:hover:not(.locked) {
+    border-color: var(--green);
+    background: rgba(0,255,65,0.07);
+    box-shadow: var(--glow);
+  }
+
+  .hack-card.locked {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .hack-card.selected {
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .hack-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .hack-name {
+    font-size: 14px;
+    color: var(--green);
+    letter-spacing: 2px;
+    font-family: 'VT323', monospace;
+  }
+
+  .hack-lvl {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: rgba(0,255,65,0.1);
+    color: var(--green);
+    border: 1px solid var(--border);
+  }
+
+  .hack-lvl.locked-lvl {
+    background: rgba(255,0,60,0.1);
+    color: var(--red);
+    border-color: var(--red);
+  }
+
+  .hack-desc { font-size: 11px; color: var(--gray); margin-bottom: 6px; }
+
+  .hack-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .hs { display: flex; flex-direction: column; gap: 1px; }
+  .hs-label { font-size: 9px; color: var(--gray); letter-spacing: 1px; }
+  .hs-val   { color: var(--yellow); font-family: 'VT323', monospace; font-size: 14px; }
+  .hs-val.g { color: var(--green); }
+  .hs-val.r { color: var(--red); }
+  .hs-val.c { color: var(--cyan); }
+
+  /* Command list shown on hack card */
+  .cmd-list {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .hack-card.selected .cmd-list { display: block; }
+
+  .cmd-entry {
+    font-size: 11px;
+    color: var(--gray);
+    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cmd-entry .cmd-code {
+    color: var(--cyan);
+    font-size: 12px;
+    background: rgba(0,255,255,0.05);
+    padding: 1px 4px;
+    border: 1px solid rgba(0,255,255,0.2);
+    border-radius: 2px;
+  }
+
+  .cmd-entry .cmd-desc { color: var(--gray); font-size: 10px; }
+
+  /* ─── SHOP CARDS ─── */
+  .shop-card {
+    border: 1px solid var(--border);
+    background: rgba(0,255,65,0.02);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+
+  .shop-card.owned  { border-color: var(--green-dim); background: rgba(0,255,65,0.05); }
+  .shop-card.locked { opacity: 0.3; }
+  .shop-card.buyable:hover {
+    border-color: var(--yellow);
+    background: rgba(255,215,0,0.05);
+    box-shadow: 0 0 10px rgba(255,215,0,0.2);
+    cursor: pointer;
+  }
+
+  .shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .shop-name {
+    font-size: 13px;
+    color: var(--yellow);
+    letter-spacing: 2px;
+    font-family: 'VT323', monospace;
+  }
+
+  .shop-cost {
+    font-size: 12px;
+    color: var(--yellow);
+    font-family: 'VT323', monospace;
+  }
+
+  .shop-cost.owned-tag { color: var(--green); }
+  .shop-cost.locked-tag { color: var(--red); }
+
+  .shop-desc   { font-size: 11px; color: var(--gray); margin-bottom: 4px; }
+  .shop-effect { font-size: 10px; color: var(--cyan); }
+
+  /* ─── LOG TABLE ─── */
+  .log-entry {
+    display: grid;
+    grid-template-columns: 70px 1fr 1fr 80px 60px;
+    gap: 6px;
+    padding: 5px 8px;
+    border-bottom: 1px solid #001500;
+    font-size: 11px;
+    align-items: center;
+  }
+
+  .log-entry:hover { background: rgba(0,255,65,0.03); }
+
+  .log-header {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .badge-success {
+    color: #000;
+    background: var(--green);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .badge-fail {
+    color: #000;
+    background: var(--red);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .badge-detect {
+    color: #000;
+    background: var(--yellow);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  /* ─── RIGHT INFO PANEL ─── */
+  #info {
+    grid-area: info;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 12px;
+  }
+
+  #info-title { }
+
+  #info-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-dim) transparent;
+  }
+
+  .info-section { margin-bottom: 12px; }
+
+  .info-section-title {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    border-bottom: 1px solid #001500;
+    font-size: 11px;
+  }
+
+  .info-key { color: var(--gray); }
+  .info-val { color: var(--green); font-family: 'VT323', monospace; font-size: 14px; }
+  .info-val.y { color: var(--yellow); }
+  .info-val.r { color: var(--red); }
+  .info-val.c { color: var(--cyan); }
+  .info-val.m { color: var(--magenta); }
+
+  /* Active hack progress */
+  #hack-progress {
+    padding: 8px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  #hack-progress.visible { display: block; }
+
+  .prog-title {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .prog-step {
+    font-size: 11px;
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .prog-step .step-icon { font-size: 12px; }
+  .prog-step .step-text { color: var(--gray); }
+  .prog-step.done .step-text { color: var(--green); text-shadow: var(--glow); }
+  .prog-step.active .step-text { color: var(--cyan); text-shadow: var(--glow-cyan); }
+  .prog-step.pending .step-icon { opacity: 0.3; }
+
+  /* ─── FOOTER ─── */
+  #footer {
+    grid-area: footer;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    padding: 5px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--gray);
+  }
+
+  #footer .f-left { display: flex; gap: 20px; }
+  #footer .f-key { color: var(--green-dim); letter-spacing: 1px; }
+
+  /* ─── MODAL ─── */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #modal-overlay.open { display: flex; }
+
+  #modal {
+    background: var(--panel);
+    border: 1px solid var(--green);
+    box-shadow: var(--glow);
+    padding: 24px 28px;
+    min-width: 400px;
+    max-width: 500px;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  #modal-title {
+    font-family: 'VT323', monospace;
+    font-size: 24px;
+    color: var(--green);
+    text-shadow: var(--glow);
+    margin-bottom: 12px;
+    letter-spacing: 3px;
+  }
+
+  #modal-body { font-size: 13px; color: var(--white); line-height: 1.8; }
+
+  #modal-input-wrap {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    border: 1px solid var(--green);
+    padding: 8px 10px;
+    background: rgba(0,255,65,0.05);
+  }
+
+  #modal-prompt { color: var(--green); text-shadow: var(--glow); }
+
+  #modal-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    caret-color: var(--green);
+    text-shadow: var(--glow);
+  }
+
+  .modal-btn {
+    margin-top: 12px;
+    margin-right: 8px;
+    background: none;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+  }
+
+  .modal-btn:hover {
+    background: rgba(0,255,65,0.1);
+    box-shadow: var(--glow);
+  }
+
+  .modal-btn.danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .modal-btn.danger:hover {
+    background: rgba(255,0,60,0.1);
+    box-shadow: var(--glow-red);
+  }
+
+  /* ─── RESULT POPUP ─── */
+  #result-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    background: var(--panel);
+    border: 2px solid var(--green);
+    box-shadow: var(--glow);
+    padding: 20px 30px;
+    min-width: 360px;
+    text-align: center;
+    border-radius: 4px;
+  }
+
+  #result-popup.fail { border-color: var(--red); box-shadow: var(--glow-red); }
+
+  #result-title {
+    font-family: 'VT323', monospace;
+    font-size: 32px;
+    color: var(--green);
+    text-shadow: var(--glow);
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+  }
+
+  #result-popup.fail #result-title { color: var(--red); text-shadow: var(--glow-red); }
+
+  #result-details { font-size: 13px; color: var(--white); line-height: 2; }
+
+  /* Glitch animation */
+  @keyframes glitch {
+    0%  { transform: translate(0); }
+    20% { transform: translate(-2px, 1px); }
+    40% { transform: translate(2px, -1px); }
+    60% { transform: translate(-1px, 2px); }
+    80% { transform: translate(1px, -2px); }
+    100%{ transform: translate(0); }
+  }
+
+  .glitch { animation: glitch 0.3s ease infinite; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .blink { animation: blink 1s step-end infinite; }
+
+  /* Typing cursor */
+  .cursor::after {
+    content: '█';
+    animation: blink 1s step-end infinite;
+    color: var(--green);
+  }
+
+  /* Level up flash */
+  @keyframes lvlup {
+    0%   { box-shadow: 0 0 20px #ff00ff; border-color: #ff00ff; }
+    100% { box-shadow: none; border-color: var(--green); }
+  }
+
+  .lvlup-flash { animation: lvlup 1s ease-out; }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--green-dim); border-radius: 2px; }
+
+  /* Detection warning flash */
+  @keyframes detect-flash {
+    0%, 100% { background: var(--panel); }
+    50%       { background: rgba(255,0,60,0.15); }
+  }
+
+  .detect-flash { animation: detect-flash 0.5s ease 3; }
+
+  /* Progress bar for hacks */
+  .prog-bar-wrap {
+    height: 4px;
+    background: #001500;
+    border-radius: 2px;
+    margin: 3px 0 6px;
+    overflow: hidden;
+  }
+
+  .prog-bar-fill {
+    height: 100%;
+    background: var(--green);
+    box-shadow: var(--glow);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  /* Disabled input */
+  #terminal-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Notification toast */
+  #toast {
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    background: var(--panel);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 10px 16px;
+    font-size: 12px;
+    border-radius: 3px;
+    box-shadow: var(--glow);
+    z-index: 3000;
+    display: none;
+    letter-spacing: 1px;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);   opacity: 1; }
+  }
+
+  /* Shop buy button */
+  .buy-btn {
+    margin-top: 6px;
+    background: none;
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+    width: 100%;
+  }
+
+  .buy-btn:hover { background: rgba(255,215,0,0.1); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+  .buy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Help section styles */
+  .help-section { margin-bottom: 16px; }
+  .help-title {
+    color: var(--cyan);
+    font-size: 13px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+  }
+  .help-row {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+  .help-cmd { color: var(--yellow); min-width: 180px; font-family: 'VT323', monospace; font-size: 14px; }
+  .help-info { color: var(--gray); }
+
+  /* ─── BOOT SCREEN ─── */
+  #boot-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #boot-logo {
+    font-family: 'VT323', monospace;
+    font-size: 64px;
+    color: var(--green);
+    text-shadow: var(--glow);
+    letter-spacing: 8px;
+    margin-bottom: 20px;
+  }
+
+  .boot-line {
+    font-size: 13px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  #progress-wrap {
+    margin-top: 20px;
+    width: 300px;
+  }
+
+  #boot-bar-bg {
+    height: 4px;
+    background: #001500;
+    border: 1px solid var(--green-dim);
+    overflow: hidden;
+  }
+
+  #boot-bar-fill {
+    height: 100%;
+    background: var(--green);
+    box-shadow: var(--glow);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  #boot-pct {
+    font-size: 12px;
+    color: var(--gray);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  #start-btn {
+    display: none;
+    margin-top: 20px;
+    background: none;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    padding: 10px 30px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    text-shadow: var(--glow);
+    box-shadow: var(--glow);
+    transition: all 0.2s;
+    animation: blink 1.5s ease infinite;
+  }
+
+  #start-btn:hover {
+    background: rgba(0,255,65,0.1);
+    animation: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <div id="boot-logo">TERMINAL<br>BREACH</div>
+  <div class="boot-line" id="b1">[ INITIALIZING SECURE TERMINAL... ]</div>
+  <div class="boot-line" id="b2">[ LOADING HACK DICTIONARY... OK ]</div>
+  <div class="boot-line" id="b3">[ SPOOFING NETWORK IDENTITY... OK ]</div>
+  <div class="boot-line" id="b4">[ ESTABLISHING GHOST TUNNEL... OK ]</div>
+  <div class="boot-line" id="b5">[ BYPASSING FICTIONAL FIREWALL... OK ]</div>
+  <div class="boot-line" id="b6">[ SYSTEM READY. ]</div>
+  <div id="progress-wrap">
+    <div id="boot-bar-bg"><div id="boot-bar-fill"></div></div>
+    <div id="boot-pct">0%</div>
+  </div>
+  <button id="start-btn" onclick="startGame()">[ ENTER TERMINAL ]</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div id="logo">TERMINAL <span>BREACH</span></div>
+
+    <div class="stat-bar">
+      <div class="stat">
+        <div class="stat-label">ALIAS</div>
+        <div class="stat-value magenta" id="stat-name">???</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">LEVEL</div>
+        <div class="stat-value green" id="stat-level">1</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">CREDITS</div>
+        <div class="stat-value" id="stat-credits">100 CR</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">CAUGHT</div>
+        <div class="stat-value red" id="stat-caught">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">WINS</div>
+        <div class="stat-value green" id="stat-wins">0</div>
+      </div>
+      <div id="xp-bar-wrap">
+        <div id="xp-label">XP: <span id="xp-cur">0</span> / <span id="xp-next">100</span></div>
+        <div id="xp-bar"><div id="xp-fill"></div></div>
+        <div style="font-size:9px;color:var(--gray);letter-spacing:1px;margin-top:2px" id="stat-title">Script Kiddie</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="panel-title">◈ TARGETS</div>
+    <div id="nav-tabs">
+      <button class="nav-btn" onclick="switchTab('terminal')">
+        <span class="nav-icon">💻</span> TERMINAL
+      </button>
+      <button class="nav-btn" onclick="switchTab('dictionary')">
+        <span class="nav-icon">📖</span> HACK DICT
+      </button>
+      <button class="nav-btn" onclick="switchTab('shop')">
+        <span class="nav-icon">🛒</span> SHOP
+        <span class="nav-badge" id="shop-badge">0</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('log')">
+        <span class="nav-icon">📋</span> HACK LOG
+      </button>
+      <button class="nav-btn" onclick="switchTab('help')">
+        <span class="nav-icon">❓</span> HELP
+      </button>
+    </div>
+    <div class="panel-title">◈ ACTIVE TARGET</div>
+    <div id="target-list"></div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="main">
+
+    <!-- TERMINAL TAB -->
+    <div id="tab-terminal" class="tab-panel active">
+      <div id="terminal-output"></div>
+      <div id="autocomplete"></div>
+      <div id="input-area">
+        <span id="input-prompt">root@ghost:~$</span>
+        <input id="terminal-input" type="text" placeholder="Type a command..." autocomplete="off" spellcheck="false"/>
+        <span id="input-status">READY</span>
+      </div>
+    </div>
+
+    <!-- DICTIONARY TAB -->
+    <div id="tab-dictionary" class="tab-panel">
+      <div id="hack-panel"></div>
+    </div>
+
+    <!-- SHOP TAB -->
+    <div id="tab-shop" class="tab-panel">
+      <div id="shop-panel"></div>
+    </div>
+
+    <!-- LOG TAB -->
+    <div id="tab-log" class="tab-panel">
+      <div id="log-panel">
+        <div class="log-entry log-header">
+          <div>RESULT</div><div>HACK</div><div>TARGET</div><div>REWARD</div><div>XP</div>
+        </div>
+        <div id="log-rows"></div>
+      </div>
+    </div>
+
+    <!-- HELP TAB -->
+    <div id="tab-help" class="tab-panel">
+      <div style="padding:16px;overflow-y:auto;flex:1" id="help-content"></div>
+    </div>
+
+  </div>
+
+  <!-- INFO PANEL -->
+  <div id="info">
+    <div class="panel-title">◈ SYSTEM STATUS</div>
+    <div id="info-content">
+      <div class="info-section">
+        <div class="info-section-title">◦ Active Hack</div>
+        <div class="info-row"><span class="info-key">Hack</span><span class="info-val" id="inf-hack">—</span></div>
+        <div class="info-row"><span class="info-key">Target</span><span class="info-val c" id="inf-target">—</span></div>
+        <div class="info-row"><span class="info-key">Progress</span><span class="info-val" id="inf-progress">—</span></div>
+      </div>
+      <div class="info-section">
+        <div class="info-section-title">◦ Gear Stats</div>
+        <div class="info-row"><span class="info-key">Success Boost</span><span class="info-val g" id="inf-succ">+0%</span></div>
+        <div class="info-row"><span class="info-key">Detect Reduce</span><span class="info-val g" id="inf-det">-0%</span></div>
+        <div class="info-row"><span class="info-key">XP Boost</span><span class="info-val c" id="inf-xp">+0%</span></div>
+        <div class="info-row"><span class="info-key">Reward Boost</span><span class="info-val y" id="inf-rew">+0%</span></div>
+      </div>
+      <div class="info-section">
+        <div class="info-section-title">◦ Target Info</div>
+        <div class="info-row"><span class="info-key">Name</span><span class="info-val c" id="inf-tname">—</span></div>
+        <div class="info-row"><span class="info-key">Defense</span><span class="info-val r" id="inf-tdef">—</span></div>
+        <div class="info-row"><span class="info-key">Multiplier</span><span class="info-val y" id="inf-tmult">—</span></div>
+      </div>
+    </div>
+
+    <div id="hack-progress">
+      <div class="prog-title">◦ EXECUTION STEPS</div>
+      <div id="prog-steps"></div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-fill" id="prog-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer" style="display:none">
+  <div class="f-left">
+    <span><span class="f-key">TAB</span> — Autocomplete</span>
+    <span><span class="f-key">↑↓</span> — History</span>
+    <span><span class="f-key">help</span> — Show commands</span>
+    <span><span class="f-key">scan</span> — List targets</span>
+    <span><span class="f-key">use [hack]</span> — Select hack</span>
+    <span><span class="f-key">attack [target]</span> — Start hack</span>
+  </div>
+  <div id="f-time" style="color:var(--gray)"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div id="modal-title"></div>
+    <div id="modal-body"></div>
+    <div id="modal-input-wrap" style="display:none">
+      <span id="modal-prompt">></span>
+      <input id="modal-input" type="text" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div id="modal-buttons"></div>
+  </div>
+</div>
+
+<!-- RESULT POPUP -->
+<div id="result-popup">
+  <div id="result-title"></div>
+  <div id="result-details"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  TERMINAL BREACH — Game Engine
+//  All hacks are 100% fictional & for entertainment only
+// ════════════════════════════════════════════════════════
+
+// ─── GAME DATA ───────────────────────────────────────────
+
+const LEVEL_XP = [0, 100, 250, 450, 700, 1050, 1500, 2100, 2900, 3900, 5200];
+const LEVEL_TITLES = [
+  "Script Kiddie","Rookie Hacker","Byte Bandit","Code Phantom",
+  "Net Infiltrator","Shadow Operative","Ghost Protocol",
+  "Cipher Master","Digital Wraith","Quantum Specter","TERMINAL GHOST"
+];
+
+// Each hack has fictional commands the player must type
+const HACKS = {
+  PING_FLOOD: {
+    name: "PING_FLOOD",
+    desc: "Overwhelm target with phantom packets to collapse response queue",
+    levelReq: 1,
+    successBase: 80,
+    reward: [50, 150],
+    xp: 25,
+    detectRisk: 10,
+    steps: [
+      { cmd: "init_ghost_array --nodes 512",  desc: "Initialize ghost packet array" },
+      { cmd: "spin_phantom --thread 8",       desc: "Spin up phantom nodes" },
+      { cmd: "flood_buffer --rate MAX",       desc: "Flood target buffer" },
+      { cmd: "mask_origin --spoof true",      desc: "Mask origin headers" },
+      { cmd: "collapse_queue --target $IP",   desc: "Collapse response queue" },
+    ]
+  },
+  KEYLOG_INJECT: {
+    name: "KEYLOG_INJECT",
+    desc: "Plant fictional keylogger payload into target event loop",
+    levelReq: 2,
+    successBase: 70,
+    reward: [100, 300],
+    xp: 50,
+    detectRisk: 20,
+    steps: [
+      { cmd: "encode_phantom_dll --key 256",  desc: "Encode phantom keylog DLL" },
+      { cmd: "bypass_handler --mode ghost",   desc: "Bypass fictional input handler" },
+      { cmd: "inject_hooks --loop event",     desc: "Inject ghost hooks into event loop" },
+      { cmd: "mask_pid --stealth true",       desc: "Mask process ID" },
+      { cmd: "activate_capture --silent",     desc: "Activate stealth capture mode" },
+    ]
+  },
+  SQL_PHANTOM: {
+    name: "SQL_PHANTOM",
+    desc: "Run fictional SQL injection sequence on database endpoints",
+    levelReq: 3,
+    successBase: 65,
+    reward: [200, 500],
+    xp: 75,
+    detectRisk: 30,
+    steps: [
+      { cmd: "scan_db_endpoints --deep",      desc: "Scan fictional database endpoints" },
+      { cmd: "gen_phantom_query --blind",     desc: "Generate phantom query strings" },
+      { cmd: "bypass_sanitizer --method union",desc: "Bypass imaginary sanitizer" },
+      { cmd: "extract_rows --all --fake",     desc: "Extract fake data rows" },
+      { cmd: "erase_query_log --wipe true",   desc: "Erase fictional query logs" },
+    ]
+  },
+  ZERO_DAY_SIM: {
+    name: "ZERO_DAY_SIM",
+    desc: "Simulate fictional zero-day kernel exploit sequence",
+    levelReq: 5,
+    successBase: 55,
+    reward: [500, 1200],
+    xp: 150,
+    detectRisk: 50,
+    steps: [
+      { cmd: "load_exploit --payload phantom", desc: "Load fictional exploit payload" },
+      { cmd: "scan_kernel --weakness true",   desc: "Scan for imaginary kernel weakness" },
+      { cmd: "inject_privesc --root",         desc: "Inject phantom privilege escalation" },
+      { cmd: "spoof_cert --fake --sign",      desc: "Spoof fake system certificates" },
+      { cmd: "exec_shell --ghost --root",     desc: "Execute fictional root shell" },
+    ]
+  },
+  GHOST_TUNNEL: {
+    name: "GHOST_TUNNEL",
+    desc: "Open encrypted phantom data tunnel through proxy chain",
+    levelReq: 4,
+    successBase: 60,
+    reward: [300, 700],
+    xp: 100,
+    detectRisk: 25,
+    steps: [
+      { cmd: "gen_ghost_keys --ssh 4096",     desc: "Generate fictional SSH ghost keys" },
+      { cmd: "route_proxy --chain 3",         desc: "Route through phantom proxy chain" },
+      { cmd: "encrypt_tunnel --mode AES",     desc: "Encrypt fake data tunnel" },
+      { cmd: "mask_bandwidth --sig none",     desc: "Mask bandwidth signature" },
+      { cmd: "stabilize_conn --ghost true",   desc: "Stabilize ghost connection" },
+    ]
+  },
+  ARP_SPOOF_SIM: {
+    name: "ARP_SPOOF_SIM",
+    desc: "Fake ARP table poisoning and traffic interception",
+    levelReq: 3,
+    successBase: 70,
+    reward: [150, 400],
+    xp: 60,
+    detectRisk: 35,
+    steps: [
+      { cmd: "broadcast_arp --ghost true",    desc: "Broadcast fictional ARP packets" },
+      { cmd: "poison_mac_table --target",     desc: "Poison imaginary MAC table" },
+      { cmd: "redirect_traffic --flow all",   desc: "Redirect phantom traffic flow" },
+      { cmd: "intercept_stream --capture",    desc: "Intercept fake data stream" },
+      { cmd: "restore_arp --clean true",      desc: "Restore fictional ARP table" },
+    ]
+  },
+  DEEPWEB_CRAWL: {
+    name: "DEEPWEB_CRAWL",
+    desc: "Crawl fictional dark net nodes and extract crypto data",
+    levelReq: 6,
+    successBase: 50,
+    reward: [800, 2000],
+    xp: 200,
+    detectRisk: 55,
+    steps: [
+      { cmd: "connect_onion --layers 7",      desc: "Connect to fictional onion router" },
+      { cmd: "peel_encryption --depth max",   desc: "Peel phantom encryption layers" },
+      { cmd: "access_darknet --node shadow",  desc: "Access imaginary darknet node" },
+      { cmd: "extract_wallet --crypto fake",  desc: "Extract fake crypto wallet data" },
+      { cmd: "sever_trail --wipe all",        desc: "Sever ghost connection trail" },
+    ]
+  },
+  BUFFER_SMASH: {
+    name: "BUFFER_SMASH",
+    desc: "Fictional buffer overflow to overwrite return address",
+    levelReq: 4,
+    successBase: 60,
+    reward: [250, 600],
+    xp: 90,
+    detectRisk: 40,
+    steps: [
+      { cmd: "gen_overflow --payload shell",  desc: "Generate fictional overflow payload" },
+      { cmd: "target_stack --ptr ret",        desc: "Target imaginary stack pointer" },
+      { cmd: "overwrite_ret --addr 0x4141",   desc: "Overwrite fake return address" },
+      { cmd: "exec_shellcode --phantom true", desc: "Execute phantom shellcode" },
+      { cmd: "cover_mem_trace --wipe",        desc: "Cover fictional memory trace" },
+    ]
+  },
+  AI_JAILBREAK: {
+    name: "AI_JAILBREAK",
+    desc: "Fictional AI model safety bypass and weight extraction",
+    levelReq: 7,
+    successBase: 45,
+    reward: [1000, 3000],
+    xp: 300,
+    detectRisk: 60,
+    steps: [
+      { cmd: "probe_safety_layer --mode fuzz",desc: "Probe fictional AI safety layer" },
+      { cmd: "inject_prompt --override true", desc: "Inject phantom prompt override" },
+      { cmd: "bypass_filter --content all",   desc: "Bypass imaginary content filter" },
+      { cmd: "extract_weights --fake --dump", desc: "Extract fake model weights" },
+      { cmd: "reset_guardrails --null",       desc: "Reset fictional AI guardrails" },
+    ]
+  },
+  RANSOMLOCK: {
+    name: "RANSOMLOCK",
+    desc: "Deploy fictional ransomware simulation and collect phantom payment",
+    levelReq: 8,
+    successBase: 40,
+    reward: [2000, 5000],
+    xp: 500,
+    detectRisk: 70,
+    steps: [
+      { cmd: "compile_encryptor --fake aes",  desc: "Compile fictional encryption module" },
+      { cmd: "select_targets --phantom all",  desc: "Select phantom file targets" },
+      { cmd: "inject_lock --simulate true",   desc: "Inject fake lock sequence" },
+      { cmd: "broadcast_note --ransom ghost", desc: "Broadcast fictional ransom note" },
+      { cmd: "collect_payment --crypto fake", desc: "Collect imaginary crypto payment" },
+    ]
+  },
+};
+
+const TARGETS = [
+  { id: "megacorp",   name: "MegaCorp Financial",    icon: "🏦", defense: 20, mult: 1.0, minLevel: 1 },
+  { id: "skynet",     name: "SkyNet Social Media",   icon: "📱", defense: 35, mult: 1.3, minLevel: 2 },
+  { id: "novacorp",   name: "NovaCorp Cloud Storage",icon: "☁️", defense: 50, mult: 1.6, minLevel: 3 },
+  { id: "quantumbank",name: "QuantumBank Pro",        icon: "💳", defense: 65, mult: 2.0, minLevel: 4 },
+  { id: "omnigov",    name: "OmniGov Database",       icon: "🏛️", defense: 80, mult: 2.5, minLevel: 5 },
+  { id: "xenocorp",   name: "XenoCorp AI Lab",        icon: "🤖", defense: 90, mult: 3.0, minLevel: 6 },
+  { id: "phantom1",   name: "PHANTOM-1 Military Sim", icon: "🛡️", defense: 99, mult: 5.0, minLevel: 8 },
+];
+
+const UPGRADES = {
+  GHOST_VPN:       { name:"GHOST VPN",       icon:"🔒", desc:"Reduce detection risk by 15%",                  cost:300,  levelReq:1, effect:{ detectReduce:15 } },
+  DARK_PROXY:      { name:"DARK PROXY",      icon:"🌐", desc:"Route via 3 phantom proxies, -20% detection",   cost:700,  levelReq:3, effect:{ detectReduce:20 } },
+  QUANTUM_ENCRYPT: { name:"QUANTUM ENCRYPT", icon:"🔐", desc:"Encrypt all packets, -25% detection",           cost:1500, levelReq:5, effect:{ detectReduce:25 } },
+  CRACKING_RIG:    { name:"CRACKING RIG",    icon:"💻", desc:"+20% hack success rate",                        cost:500,  levelReq:2, effect:{ successBoost:20 } },
+  NEURAL_PROC:     { name:"NEURAL PROC",     icon:"🧠", desc:"+35% hack success rate, faster execution",      cost:1200, levelReq:4, effect:{ successBoost:35 } },
+  XP_BOOSTER:      { name:"XP BOOSTER",      icon:"⚡", desc:"Gain +50% XP on all successful hacks",          cost:600,  levelReq:2, effect:{ xpBoost:50 } },
+  REWARD_SIPHON:   { name:"REWARD SIPHON",   icon:"💰", desc:"+40% credits from all successful hacks",        cost:900,  levelReq:3, effect:{ rewardBoost:40 } },
+  STEALTH_OS:      { name:"STEALTH OS",      icon:"👻", desc:"Wipe traces after failed hack, -50% penalty",   cost:2000, levelReq:6, effect:{ penaltyReduce:50 } },
+  MEGA_RIG:        { name:"MEGA RIG",        icon:"🚀", desc:"+50% success, -30% detection. ULTIMATE",        cost:5000, levelReq:8, effect:{ successBoost:50, detectReduce:30 } },
+};
+
+// ─── PLAYER STATE ─────────────────────────────────────────
+let player = {
+  name: "Ghost",
+  credits: 100,
+  xp: 0,
+  level: 1,
+  detected: 0,
+  wins: 0,
+  losses: 0,
+  upgrades: {},      // key → true/false
+  activeHack: null,  // current HACKS key
+  activeTarget: null,// current TARGETS id
+  stepIndex: 0,      // which command step we're on
+  inProgress: false, // currently doing a hack
+  cmdHistory: [],
+  historyIdx: -1,
+};
+
+// ─── COMMAND REGISTRY ─────────────────────────────────────
+// All commands the player can type
+const COMMANDS = {};
+
+function regCmd(name, aliases, fn, desc, usage) {
+  const entry = { name, fn, desc, usage: usage || name };
+  COMMANDS[name.toLowerCase()] = entry;
+  (aliases || []).forEach(a => COMMANDS[a.toLowerCase()] = entry);
+}
+
+// ─── TERMINAL ENGINE ──────────────────────────────────────
+let outputEl, inputEl, autocompleteEl;
+
+function initTerminal() {
+  outputEl       = document.getElementById('terminal-output');
+  inputEl        = document.getElementById('terminal-input');
+  autocompleteEl = document.getElementById('autocomplete');
+
+  inputEl.addEventListener('keydown', onInputKeydown);
+  inputEl.addEventListener('input', onInputChange);
+}
+
+function print(text, cls = '', prefix = '') {
+  const line = document.createElement('div');
+  line.className = 't-line';
+
+  if (prefix) {
+    const pre = document.createElement('span');
+    pre.className = 't-prefix';
+    pre.textContent = prefix;
+    line.appendChild(pre);
+  }
+
+  const span = document.createElement('span');
+  span.className = `t-text ${cls}`;
+  span.innerHTML = text;
+  line.appendChild(span);
+
+  outputEl.appendChild(line);
+  outputEl.scrollTop = outputEl.scrollHeight;
+  return span;
+}
+
+function printBlank() {
+  outputEl.appendChild(document.createElement('div'));
+}
+
+function printBanner(text, cls = 'green bold') {
+  printBlank();
+  print('═'.repeat(56), 'gray');
+  print(text, cls);
+  print('═'.repeat(56), 'gray');
+  printBlank();
+}
+
+function clearTerminal() {
+  outputEl.innerHTML = '';
+}
+
+function typewritePrint(text, cls = '', delay = 20, prefix = '') {
+  return new Promise(resolve => {
+    const line = document.createElement('div');
+    line.className = 't-line';
+
+    if (prefix) {
+      const pre = document.createElement('span');
+      pre.className = 't-prefix';
+      pre.textContent = prefix;
+      line.appendChild(pre);
+    }
+
+    const span = document.createElement('span');
+    span.className = `t-text ${cls}`;
+    line.appendChild(span);
+    outputEl.appendChild(line);
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        span.textContent += text[i++];
+        outputEl.scrollTop = outputEl.scrollHeight;
+      } else {
+        clearInterval(interval);
+        resolve();
+      }
+    }, delay);
+  });
+}
+
+function onInputKeydown(e) {
+  if (e.key === 'Enter') {
+    const val = inputEl.value.trim();
+    if (!val) return;
+    handleCommand(val);
+    player.cmdHistory.unshift(val);
+    player.historyIdx = -1;
+    inputEl.value = '';
+    updateAutocomplete('');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (player.historyIdx < player.cmdHistory.length - 1) {
+      player.historyIdx++;
+      inputEl.value = player.cmdHistory[player.historyIdx] || '';
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (player.historyIdx > -1) {
+      player.historyIdx--;
+      inputEl.value = player.historyIdx >= 0 ? player.cmdHistory[player.historyIdx] : '';
+    }
+  } else if (e.key === 'Tab') {
+    e.preventDefault();
+    doAutocomplete();
+  }
+}
+
+function onInputChange() {
+  updateAutocomplete(inputEl.value);
+}
+
+function doAutocomplete() {
+  const val = inputEl.value.toLowerCase();
+  if (!val) return;
+  const matches = Object.keys(COMMANDS).filter(k => k.startsWith(val) && COMMANDS[k].name.toLowerCase() === k);
+  if (matches.length === 1) {
+    inputEl.value = matches[0];
+    updateAutocomplete('');
+  } else if (matches.length > 1) {
+    updateAutocomplete(val);
+  }
+}
+
+function updateAutocomplete(val) {
+  autocompleteEl.innerHTML = '';
+  if (!val) return;
+  const v = val.toLowerCase().split(' ')[0];
+  const matches = Object.keys(COMMANDS).filter(k => k.startsWith(v) && COMMANDS[k].name.toLowerCase() === k);
+  matches.slice(0, 8).forEach(m => {
+    const chip = document.createElement('span');
+    chip.className = 'hint-chip';
+    chip.textContent = m;
+    chip.onclick = () => { inputEl.value = m + ' '; inputEl.focus(); updateAutocomplete(''); };
+    autocompleteEl.appendChild(chip);
+  });
+}
+
+function handleCommand(raw) {
+  if (player.inProgress) {
+    handleHackInput(raw);
+    return;
+  }
+
+  // Echo command
+  print(`${raw}`, 'white', `root@ghost:~$ `);
+
+  const parts = raw.trim().split(/\s+/);
+  const cmd   = parts[0].toLowerCase();
+  const args  = parts.slice(1);
+
+  if (COMMANDS[cmd]) {
+    COMMANDS[cmd].fn(args, raw);
+  } else {
+    print(`Command not found: ${cmd}`, 'red');
+    print(`Type <span class="t-text cyan">help</span> to see available commands.`, 'gray');
+  }
+  printBlank();
+}
+
+// ─── HACK STATE MACHINE ───────────────────────────────────
+function startHack() {
+  const hack   = HACKS[player.activeHack];
+  const target = TARGETS.find(t => t.id === player.activeTarget);
+
+  if (!hack || !target) {
+    print("❌ Select a hack with <span class='t-text cyan'>use [hackname]</span> and target with <span class='t-text cyan'>attack [target]</span>", 'red');
+    return;
+  }
+
+  player.inProgress = true;
+  player.stepIndex  = 0;
+
+  inputEl.disabled = false;
+  document.getElementById('input-status').textContent = 'HACKING';
+  document.getElementById('input-status').style.color = 'var(--red)';
+
+  document.getElementById('inf-hack').textContent    = hack.name;
+  document.getElementById('inf-target').textContent  = target.name;
+  document.getElementById('inf-progress').textContent= `0/${hack.steps.length}`;
+
+  // Show progress panel
+  const prog = document.getElementById('hack-progress');
+  prog.classList.add('visible');
+  renderProgSteps(hack);
+
+  printBanner(`💀 EXECUTING: ${hack.name}`, 'red bold');
+  print(`🎯 Target   : ${target.icon} ${target.name}`, 'cyan');
+  print(`🛡️  Defense  : ${target.defense}%`, 'red');
+  print(`📊 Success  : ~${getAdjustedSuccess(hack, target)}%`, 'yellow');
+  print(`👁️  Detect   : ~${getAdjustedDetect(hack, target)}%`, 'magenta');
+  printBlank();
+  print(`Type each command to execute the hack sequence.`, 'gray');
+  printBlank();
+
+  printStep(hack.steps[0], 0, hack.steps.length);
+}
+
+function renderProgSteps(hack) {
+  const el = document.getElementById('prog-steps');
+  el.innerHTML = '';
+  hack.steps.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'prog-step pending';
+    div.id = `pstep-${i}`;
+    div.innerHTML = `<span class="step-icon">◯</span><span class="step-text">${step.desc}</span>`;
+    el.appendChild(div);
+  });
+}
+
+function updateProgStep(index, status) {
+  const el = document.getElementById(`pstep-${index}`);
+  if (!el) return;
+  el.className = `prog-step ${status}`;
+  const icon = el.querySelector('.step-icon');
+  if (status === 'done')   icon.textContent = '✓';
+  else if (status === 'active') icon.textContent = '►';
+  else icon.textContent = '◯';
+
+  // Progress bar
+  const hack = HACKS[player.activeHack];
+  const pct  = Math.round((index / hack.steps.length) * 100);
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('inf-progress').textContent = `${index}/${hack.steps.length}`;
+}
+
+function printStep(step, index, total) {
+  print(`<span style="color:var(--gray)">[${index + 1}/${total}]</span> <span style="color:var(--gray)">${step.desc}</span>`, '');
+  print(``, 'gray', `root@ghost:~$ `);
+  updateProgStep(index, 'active');
+}
+
+function handleHackInput(raw) {
+  const hack   = HACKS[player.activeHack];
+  const target = TARGETS.find(t => t.id === player.activeTarget);
+  const step   = hack.steps[player.stepIndex];
+
+  // Echo
+  print(`${raw}`, 'white', `root@ghost:~$ `);
+
+  // Check if command matches (flexible — strip extra spaces, case insensitive base command)
+  const expected  = step.cmd.split(' ')[0].toLowerCase();
+  const given     = raw.trim().split(' ')[0].toLowerCase();
+  const isCorrect = given === expected;
+
+  if (!isCorrect) {
+    print(`❌ Wrong command. Expected: <span class="t-text cyan">${step.cmd.split(' ')[0]}</span>`, 'red');
+    print(`💡 Hint: ${step.desc}`, 'gray');
+    printBlank();
+    return;
+  }
+
+  // Correct!
+  updateProgStep(player.stepIndex, 'done');
+  print(`✓ ${step.desc} — <span class="t-text green">OK</span>`, 'gray');
+
+  // Fake output lines
+  const fakeOutputs = [
+    `   → ${generateFakeHex()}`,
+    `   → Process bound to phantom PID ${Math.floor(Math.random()*9000)+1000}`,
+    `   → Memory segment 0x${generateFakeHex(8)} allocated`,
+    `   → Packet chain initialized [${Math.floor(Math.random()*512)+64} nodes]`,
+  ];
+  const numLines = Math.floor(Math.random() * 2) + 1;
+  for (let i = 0; i < numLines; i++) {
+    print(fakeOutputs[Math.floor(Math.random() * fakeOutputs.length)], 'gray');
+  }
+
+  player.stepIndex++;
+
+  if (player.stepIndex >= hack.steps.length) {
+    // Hack sequence complete — resolve outcome
+    resolveHack(hack, target);
+  } else {
+    printBlank();
+    printStep(hack.steps[player.stepIndex], player.stepIndex, hack.steps.length);
+    updateProgStep(player.stepIndex, 'active');
+  }
+}
+
+function generateFakeHex(len = 16) {
+  let s = '';
+  for (let i = 0; i < len; i++) s += Math.floor(Math.random() * 16).toString(16).toUpperCase();
+  return s;
+}
+
+function getAdjustedSuccess(hack, target) {
+  let s = hack.successBase + getSuccessBoost() - target.defense * 0.3;
+  return Math.round(Math.max(5, Math.min(95, s)));
+}
+
+function getAdjustedDetect(hack, target) {
+  let d = hack.detectRisk - getDetectReduce() + target.defense * 0.2;
+  return Math.round(Math.max(5, Math.min(95, d)));
+}
+
+function resolveHack(hack, target) {
+  player.inProgress = false;
+  document.getElementById('input-status').textContent = 'READY';
+  document.getElementById('input-status').style.color = '';
+
+  // Full progress bar
+  document.getElementById('prog-bar').style.width = '100%';
+  document.getElementById('inf-progress').textContent = `${hack.steps.length}/${hack.steps.length}`;
+
+  const adjSuccess = getAdjustedSuccess(hack, target);
+  const adjDetect  = getAdjustedDetect(hack, target);
+
+  const roll       = Math.random() * 100;
+  const detectRoll = Math.random() * 100;
+  const success    = roll <= adjSuccess;
+  const detected   = detectRoll <= adjDetect;
+
+  setTimeout(() => {
+    printBlank();
+    print('Analyzing breach result...', 'gray');
+
+    setTimeout(() => {
+      if (success) {
+        // Calculate reward
+        const [rMin, rMax] = hack.reward;
+        let reward = Math.floor(Math.random() * (rMax - rMin) + rMin);
+        reward = Math.floor(reward * target.mult * (1 + getRewardBoost() / 100));
+
+        let xpGain = Math.floor(hack.xp * (1 + getXPBoost() / 100));
+
+        if (detected) {
+          const deduction = Math.floor(reward * 0.3 * (1 - getPenaltyReduce() / 100));
+          reward -= deduction;
+          player.detected++;
+          print(`⚠️  PARTIAL DETECTION — Lost ${deduction} CR in trace cleanup`, 'yellow');
+        }
+
+        player.credits += reward;
+        player.xp      += xpGain;
+        player.wins++;
+
+        printBanner('✅ HACK SUCCESSFUL — BREACH COMPLETE', 'green bold');
+        print(`💰 Credits  : +${reward} CR  (Total: ${player.credits} CR)`, 'yellow');
+        print(`⭐ XP       : +${xpGain}  (Total: ${player.xp})`, 'cyan');
+
+        const leveled = checkLevelUp();
+        if (leveled) {
+          printBlank();
+          print(`🎉 LEVEL UP! You are now Level ${player.level}: ${getTitle()}`, 'magenta bold');
+          const unlocks = Object.values(HACKS).filter(h => h.levelReq === player.level).map(h => h.name);
+          if (unlocks.length) print(`🔓 NEW HACKS UNLOCKED: ${unlocks.join(', ')}`, 'cyan');
+          document.getElementById('app').classList.add('lvlup-flash');
+          setTimeout(() => document.getElementById('app').classList.remove('lvlup-flash'), 1000);
+        }
+
+        logEntry('SUCCESS', hack.name, target.name, reward, xpGain, detected);
+        showResult(true, reward, xpGain, detected);
+      } else {
+        // Fail
+        let penalty = Math.floor((Math.random() * 60 + 20) * (1 - getPenaltyReduce() / 100));
+        player.credits = Math.max(0, player.credits - penalty);
+        player.losses++;
+
+        if (detected) {
+          player.detected++;
+          document.getElementById('app').classList.add('detect-flash');
+          setTimeout(() => document.getElementById('app').classList.remove('detect-flash'), 1500);
+          print(`🚨 DETECTED! Ghost signature logged. Detections: ${player.detected}`, 'red bold');
+        }
+
+        printBanner('❌ HACK FAILED — DEFENSE BLOCKED', 'red bold');
+        print(`💸 Trace cleanup cost: -${penalty} CR`, 'red');
+
+        logEntry('FAIL', hack.name, target.name, -penalty, 0, detected);
+        showResult(false, -penalty, 0, detected);
+      }
+
+      updateHUD();
+      renderTargetList();
+      document.getElementById('hack-progress').classList.remove('visible');
+
+    }, 800);
+  }, 600);
+}
+
+// ─── RESULT POPUP ─────────────────────────────────────────
+function showResult(success, reward, xp, detected) {
+  const popup  = document.getElementById('result-popup');
+  const title  = document.getElementById('result-title');
+  const detail = document.getElementById('result-details');
+
+  popup.className = success ? '' : 'fail';
+  title.textContent = success ? '✅ BREACH COMPLETE' : '❌ HACK FAILED';
+
+  if (success) {
+    detail.innerHTML = `
+      <span style="color:var(--yellow)">💰 +${reward} CR</span><br>
+      <span style="color:var(--cyan)">⭐ +${xp} XP</span><br>
+      ${detected ? '<span style="color:var(--yellow)">⚠️ Partial Detection</span>' : '<span style="color:var(--green)">👻 Undetected</span>'}
+    `;
+  } else {
+    detail.innerHTML = `
+      <span style="color:var(--red)">💸 ${reward} CR</span><br>
+      ${detected ? '<span style="color:var(--red)">🚨 DETECTED!</span>' : '<span style="color:var(--gray)">Undetected</span>'}
+    `;
+  }
+
+  popup.style.display = 'block';
+  setTimeout(() => { popup.style.display = 'none'; }, 3000);
+}
+
+// ─── UPGRADE HELPERS ──────────────────────────────────────
+function getSuccessBoost() {
+  return Object.entries(player.upgrades)
+    .filter(([,v]) => v)
+    .reduce((s,[k]) => s + (UPGRADES[k]?.effect?.successBoost || 0), 0);
+}
+
+function getDetectReduce() {
+  return Object.entries(player.upgrades)
+    .filter(([,v]) => v)
+    .reduce((s,[k]) => s + (UPGRADES[k]?.effect?.detectReduce || 0), 0);
+}
+
+function getXPBoost() {
+  return Object.entries(player.upgrades)
+    .filter(([,v]) => v)
+    .reduce((s,[k]) => s + (UPGRADES[k]?.effect?.xpBoost || 0), 0);
+}
+
+function getRewardBoost() {
+  return Object.entries(player.upgrades)
+    .filter(([,v]) => v)
+    .reduce((s,[k]) => s + (UPGRADES[k]?.effect?.rewardBoost || 0), 0);
+}
+
+function getPenaltyReduce() {
+  return Object.entries(player.upgrades)
+    .filter(([,v]) => v)
+    .reduce((s,[k]) => s + (UPGRADES[k]?.effect?.penaltyReduce || 0), 0);
+}
+
+// ─── LEVEL / TITLE ────────────────────────────────────────
+function checkLevelUp() {
+  if (player.level >= LEVEL_XP.length - 1) return false;
+  if (player.xp >= LEVEL_XP[player.level]) {
+    player.level++;
+    return true;
+  }
+  return false;
+}
+
+function getTitle() {
+  return LEVEL_TITLES[Math.min(player.level - 1, LEVEL_TITLES.length - 1)];
+}
+
+// ─── LOG ──────────────────────────────────────────────────
+function logEntry(result, hack, target, reward, xp, detected) {
+  const rows = document.getElementById('log-rows');
+  const div  = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = `
+    <div>${result === 'SUCCESS'
+      ? '<span class="badge-success">WIN</span>'
+      : '<span class="badge-fail">FAIL</span>'}
+      ${detected ? ' <span class="badge-detect">⚠</span>' : ''}
+    </div>
+    <div style="color:var(--green);font-size:10px">${hack}</div>
+    <div style="color:var(--cyan);font-size:10px">${target}</div>
+    <div style="color:${reward > 0 ? 'var(--yellow)' : 'var(--red)'}">${reward > 0 ? '+' : ''}${reward} CR</div>
+    <div style="color:var(--cyan)">${xp > 0 ? '+' + xp : '—'}</div>
+  `;
+  rows.prepend(div);
+}
+
+// ─── HUD ──────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('stat-name').textContent    = player.name;
+  document.getElementById('stat-level').textContent   = player.level;
+  document.getElementById('stat-credits').textContent = player.credits + ' CR';
+  document.getElementById('stat-caught').textContent  = player.detected;
+  document.getElementById('stat-wins').textContent    = player.wins;
+  document.getElementById('stat-title').textContent   = getTitle();
+
+  const prevXP = LEVEL_XP[player.level - 1] || 0;
+  const nextXP = LEVEL_XP[player.level] || LEVEL_XP[LEVEL_XP.length - 1];
+  const pct    = Math.min(100, Math.round(((player.xp - prevXP) / (nextXP - prevXP)) * 100));
+  document.getElementById('xp-fill').style.width = pct + '%';
+  document.getElementById('xp-cur').textContent  = player.xp;
+  document.getElementById('xp-next').textContent = nextXP;
+
+  document.getElementById('inf-succ').textContent = '+' + getSuccessBoost() + '%';
+  document.getElementById('inf-det').textContent  = '-' + getDetectReduce() + '%';
+  document.getElementById('inf-xp').textContent   = '+' + getXPBoost() + '%';
+  document.getElementById('inf-rew').textContent  = '+' + getRewardBoost() + '%';
+
+  const affordable = Object.entries(UPGRADES).filter(([k, u]) =>
+    !player.upgrades[k] && player.credits >= u.cost && player.level >= u.levelReq
+  ).length;
+  const badge = document.getElementById('shop-badge');
+  badge.textContent    = affordable;
+  badge.style.display  = affordable > 0 ? 'inline' : 'none';
+}
+
+// ─── RENDER FUNCTIONS ─────────────────────────────────────
+function renderTargetList() {
+  const list = document.getElementById('target-list');
+  list.innerHTML = '';
+  TARGETS.forEach(t => {
+    const locked   = player.level < t.minLevel;
+    const selected = player.activeTarget === t.id;
+    const div = document.createElement('div');
+    div.className = `target-card${locked ? ' locked' : ''}${selected ? ' selected' : ''}`;
+    div.innerHTML = `
+      <div class="target-name">${t.icon} ${t.name}</div>
+      <div class="target-meta">
+        <span class="target-defense">DEF ${t.defense}%</span>
+        <span class="target-mult">×${t.mult}</span>
+        ${locked ? `<span style="color:var(--red);font-size:9px">LVL ${t.minLevel}</span>` : ''}
+      </div>
+      <div class="def-bar"><div class="def-bar-fill" style="width:${t.defense}%"></div></div>
+    `;
+    if (!locked) {
+      div.onclick = () => {
+        player.activeTarget = t.id;
+        renderTargetList();
+        document.getElementById('inf-tname').textContent = t.name;
+        document.getElementById('inf-tdef').textContent  = t.defense + '%';
+        document.getElementById('inf-tmult').textContent = '×' + t.mult;
+        showToast('Target: ' + t.name);
+      };
+    }
+    list.appendChild(div);
+  });
+}
+
+function renderDictionary() {
+  const panel = document.getElementById('hack-panel');
+  panel.innerHTML = '';
+  Object.values(HACKS).forEach(hack => {
+    const locked   = player.level < hack.levelReq;
+    const selected = player.activeHack === hack.name;
+    const div = document.createElement('div');
+    div.className = `hack-card${locked ? ' locked' : ''}${selected ? ' selected' : ''}`;
+    div.innerHTML = `
+      <div class="hack-card-header">
+        <span class="hack-name">${hack.name}</span>
+        <span class="hack-lvl${locked ? ' locked-lvl' : ''}">LVL ${hack.levelReq}</span>
+      </div>
+      <div class="hack-desc">${hack.desc}</div>
+      <div class="hack-stats">
+        <div class="hs"><span class="hs-label">SUCCESS</span><span class="hs-val g">${hack.successBase}%</span></div>
+        <div class="hs"><span class="hs-label">DETECT</span><span class="hs-val r">${hack.detectRisk}%</span></div>
+        <div class="hs"><span class="hs-label">REWARD</span><span class="hs-val y">${hack.reward[0]}–${hack.reward[1]} CR</span></div>
+        <div class="hs"><span class="hs-label">XP</span><span class="hs-val c">${hack.xp}</span></div>
+      </div>
+      <div class="cmd-list">
+        ${hack.steps.map(s => `<div class="cmd-entry"><span class="cmd-code">${s.cmd}</span><span class="cmd-desc">${s.desc}</span></div>`).join('')}
+      </div>
+    `;
+    if (!locked) {
+      div.onclick = () => {
+        player.activeHack = hack.name;
+        renderDictionary();
+        document.getElementById('inf-hack').textContent = hack.name;
+        showToast('Hack loaded: ' + hack.name);
+      };
+    }
+    panel.appendChild(div);
+  });
+}
+
+function renderShop() {
+  const panel = document.getElementById('shop-panel');
+  panel.innerHTML = '';
+  Object.entries(UPGRADES).forEach(([key, upg]) => {
+    const owned   = !!player.upgrades[key];
+    const locked  = player.level < upg.levelReq;
+    const buyable = !owned && !locked && player.credits >= upg.cost;
+    const div = document.createElement('div');
+    div.className = `shop-card${owned ? ' owned' : ''}${locked ? ' locked' : ''}${buyable ? ' buyable' : ''}`;
+    div.innerHTML = `
+      <div class="shop-header">
+        <span class="shop-name">${upg.icon} ${upg.name}</span>
+        <span class="shop-cost ${owned ? 'owned-tag' : locked ? 'locked-tag' : ''}">
+          ${owned ? '✓ OWNED' : locked ? 'LVL ' + upg.levelReq : upg.cost + ' CR'}
+        </span>
+      </div>
+      <div class="shop-desc">${upg.desc}</div>
+      <div class="shop-effect">${Object.entries(upg.effect).map(([k,v]) => k + ': ' + v).join(' · ')}</div>
+      ${buyable ? `<button class="buy-btn" onclick="buyUpgrade('${key}')">[ PURCHASE ]</button>` : ''}
+    `;
+    panel.appendChild(div);
+  });
+}
+
+function buyUpgrade(key) {
+  const upg = UPGRADES[key];
+  if (!upg || player.upgrades[key]) return;
+  if (player.credits < upg.cost) { showToast('Insufficient credits!'); return; }
+  if (player.level < upg.levelReq) { showToast('Level too low!'); return; }
+  player.credits -= upg.cost;
+  player.upgrades[key] = true;
+  updateHUD();
+  renderShop();
+  showToast('Installed: ' + upg.name);
+  print('🛒 Purchased: <span class="t-text yellow">' + upg.name + '</span>');
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  btns.forEach(b => { if (b.getAttribute('onclick')?.includes("'" + name + "'")) b.classList.add('active'); });
+  if (name === 'dictionary') renderDictionary();
+  if (name === 'shop') renderShop();
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+// ─── HELP ─────────────────────────────────────────────────
+function initHelp() {
+  document.getElementById('help-content').innerHTML = `
+    <div class="help-section">
+      <div class="help-title">BASIC COMMANDS</div>
+      <div class="help-row"><span class="help-cmd">help</span><span class="help-info">Show this help panel</span></div>
+      <div class="help-row"><span class="help-cmd">scan</span><span class="help-info">List all targets</span></div>
+      <div class="help-row"><span class="help-cmd">hacks</span><span class="help-info">List available hacks</span></div>
+      <div class="help-row"><span class="help-cmd">status</span><span class="help-info">Show player stats</span></div>
+      <div class="help-row"><span class="help-cmd">clear</span><span class="help-info">Clear terminal output</span></div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">HACKING</div>
+      <div class="help-row"><span class="help-cmd">use [hackname]</span><span class="help-info">Select a hack technique</span></div>
+      <div class="help-row"><span class="help-cmd">attack [target]</span><span class="help-info">Lock onto a target</span></div>
+      <div class="help-row"><span class="help-cmd">run</span><span class="help-info">Execute selected hack on target</span></div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">SHOP</div>
+      <div class="help-row"><span class="help-cmd">shop</span><span class="help-info">Open the upgrade shop</span></div>
+      <div class="help-row"><span class="help-cmd">buy [item]</span><span class="help-info">Purchase an upgrade</span></div>
+    </div>
+    <div class="help-section">
+      <div class="help-title">SHORTCUTS</div>
+      <div class="help-row"><span class="help-cmd">TAB</span><span class="help-info">Autocomplete command</span></div>
+      <div class="help-row"><span class="help-cmd">↑ / ↓</span><span class="help-info">Navigate command history</span></div>
+    </div>
+  `;
+}
+
+// ─── COMMAND REGISTRY ─────────────────────────────────────
+function initCommands() {
+  regCmd('help', ['?'], () => {
+    switchTab('help');
+    printBanner('COMMAND REFERENCE', 'cyan bold');
+    Object.values(COMMANDS).filter((v,i,a) => a.indexOf(v) === i).forEach(c => {
+      print('  <span class="t-text cyan">' + c.usage.padEnd(24) + '</span><span class="t-text gray">' + c.desc + '</span>');
+    });
+  }, 'Show all commands', 'help');
+
+  regCmd('clear', ['cls'], () => clearTerminal(), 'Clear terminal', 'clear');
+
+  regCmd('scan', [], () => {
+    printBanner('◈ AVAILABLE TARGETS', 'cyan bold');
+    TARGETS.forEach(t => {
+      const locked = player.level < t.minLevel;
+      const sel    = player.activeTarget === t.id;
+      print(
+        (sel ? '▶ ' : '  ') + t.icon + ' <span class="t-text ' + (locked ? 'red' : 'green') + '">' +
+        t.name.padEnd(28) + '</span>' +
+        '<span class="t-text gray">DEF:</span><span class="t-text red">' + String(t.defense + '%').padEnd(5) + '</span>' +
+        '<span class="t-text gray">  ×' + t.mult + '</span>' +
+        (locked ? '  <span class="t-text red">[LVL ' + t.minLevel + ' REQUIRED]</span>' : ''), ''
+      );
+    });
+  }, 'List all targets', 'scan');
+
+  regCmd('hacks', ['ls', 'list'], () => {
+    printBanner('◈ HACK DICTIONARY', 'green bold');
+    Object.values(HACKS).forEach(h => {
+      const locked = player.level < h.levelReq;
+      const sel    = player.activeHack === h.name;
+      print(
+        (sel ? '▶ ' : '  ') + '<span class="t-text ' + (locked ? 'red' : 'green') + '">' +
+        h.name.padEnd(22) + '</span>' +
+        '<span class="t-text gray">LVL ' + h.levelReq + '  SUC:' + h.successBase + '%  DET:' + h.detectRisk + '%</span>' +
+        (locked ? '  <span class="t-text red">[LOCKED]</span>' : ''), ''
+      );
+    });
+  }, 'List available hacks', 'hacks');
+
+  regCmd('status', ['stats', 'whoami'], () => {
+    printBanner('◈ OPERATIVE STATUS', 'magenta bold');
+    print('Alias   : <span class="t-text magenta">' + player.name + '</span>');
+    print('Level   : <span class="t-text green">' + player.level + ' — ' + getTitle() + '</span>');
+    print('Credits : <span class="t-text yellow">' + player.credits + ' CR</span>');
+    print('XP      : <span class="t-text cyan">' + player.xp + '</span>');
+    print('Wins    : <span class="t-text green">' + player.wins + '</span>  Losses: <span class="t-text red">' + player.losses + '</span>  Detected: <span class="t-text red">' + player.detected + '</span>');
+    const gear = Object.keys(player.upgrades).filter(k => player.upgrades[k]);
+    print('Gear    : <span class="t-text cyan">' + (gear.length ? gear.join(', ') : 'None installed') + '</span>');
+  }, 'Show player status', 'status');
+
+  regCmd('use', [], (args) => {
+    if (!args[0]) { print('Usage: use [hackname]', 'red'); return; }
+    const key  = args[0].toUpperCase();
+    const hack = HACKS[key];
+    if (!hack) { print('Unknown hack: ' + args[0], 'red'); return; }
+    if (player.level < hack.levelReq) { print('🔒 ' + hack.name + ' requires Level ' + hack.levelReq, 'red'); return; }
+    player.activeHack = key;
+    document.getElementById('inf-hack').textContent = hack.name;
+    print('✓ Hack loaded: <span class="t-text cyan">' + hack.name + '</span>', 'green');
+    print('  ' + hack.desc, 'gray');
+    renderDictionary();
+  }, 'Select a hack technique', 'use [hackname]');
+
+  regCmd('attack', ['target'], (args) => {
+    if (!args[0]) { print('Usage: attack [target]', 'red'); return; }
+    const id = args[0].toLowerCase();
+    const t  = TARGETS.find(x => x.id === id || x.name.toLowerCase().includes(id));
+    if (!t) { print('Unknown target: ' + args[0] + '. Use <span class="t-text cyan">scan</span> to list targets.', 'red'); return; }
+    if (player.level < t.minLevel) { print('🔒 ' + t.name + ' requires Level ' + t.minLevel, 'red'); return; }
+    player.activeTarget = t.id;
+    document.getElementById('inf-tname').textContent = t.name;
+    document.getElementById('inf-tdef').textContent  = t.defense + '%';
+    document.getElementById('inf-tmult').textContent = '×' + t.mult;
+    renderTargetList();
+    print('✓ Target locked: <span class="t-text cyan">' + t.icon + ' ' + t.name + '</span>', 'green');
+    if (player.activeHack) print('  Type <span class="t-text cyan">run</span> to execute ' + player.activeHack, 'gray');
+    else print('  Use <span class="t-text cyan">use [hackname]</span> to select a hack first.', 'gray');
+  }, 'Lock onto a target', 'attack [target]');
+
+  regCmd('run', ['exec', 'execute'], () => {
+    if (!player.activeHack)   { print('No hack selected. Use <span class="t-text cyan">use [hackname]</span>', 'red'); return; }
+    if (!player.activeTarget) { print('No target selected. Use <span class="t-text cyan">attack [target]</span>', 'red'); return; }
+    startHack();
+  }, 'Execute selected hack on selected target', 'run');
+
+  regCmd('shop', [], () => {
+    switchTab('shop');
+    print('Opened shop. Use <span class="t-text cyan">buy [item]</span> to purchase.', 'gray');
+  }, 'Open upgrade shop', 'shop');
+
+  regCmd('buy', [], (args) => {
+    if (!args[0]) { print('Usage: buy [item]', 'red'); return; }
+    buyUpgrade(args[0].toUpperCase());
+  }, 'Purchase an upgrade', 'buy [item]');
+}
+
+// ─── MODAL ────────────────────────────────────────────────
+function showModal(title, body, withInput, callback) {
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent  = body;
+  const inputWrap = document.getElementById('modal-input-wrap');
+  const btns      = document.getElementById('modal-buttons');
+  const input     = document.getElementById('modal-input');
+  btns.innerHTML  = '';
+
+  if (withInput) {
+    inputWrap.style.display = 'flex';
+    input.value = '';
+    input.placeholder = 'alias...';
+    setTimeout(() => input.focus(), 100);
+    const btn = document.createElement('button');
+    btn.className   = 'modal-btn';
+    btn.textContent = '[ CONFIRM ]';
+    btn.onclick = () => { overlay.classList.remove('open'); if (callback) callback(input.value); };
+    input.onkeydown = e => { if (e.key === 'Enter') btn.click(); };
+    btns.appendChild(btn);
+  } else {
+    inputWrap.style.display = 'none';
+    const btn = document.createElement('button');
+    btn.className   = 'modal-btn';
+    btn.textContent = '[ OK ]';
+    btn.onclick = () => { overlay.classList.remove('open'); if (callback) callback(); };
+    btns.appendChild(btn);
+  }
+  overlay.classList.add('open');
+}
+
+// ─── BOOT & START ─────────────────────────────────────────
+function launchTerminal() {
+  document.getElementById('boot-screen').style.display = 'none';
+  document.getElementById('app').style.display         = 'grid';
+  document.getElementById('footer').style.display      = 'flex';
+
+  initTerminal();
+  initCommands();
+  initHelp();
+  updateHUD();
+  renderTargetList();
+  switchTab('terminal');
+
+  printBanner('TERMINAL BREACH v2.0 — GHOST PROTOCOL ACTIVE', 'green bold');
+  print('Welcome, <span class="t-text magenta">' + player.name + '</span>. Ghost terminal initialized.');
+  print('Type <span class="t-text cyan">help</span> for commands · <span class="t-text cyan">scan</span> for targets · <span class="t-text cyan">hacks</span> for techniques.', 'gray');
+  printBlank();
+  print('All operations are 100% fictional. This is a game.', 'gray');
+  printBlank();
+
+  setInterval(() => {
+    document.getElementById('f-time').textContent =
+      new Date().toLocaleTimeString('en-US', { hour12: false }) + ' UTC';
+  }, 1000);
+
+  document.getElementById('terminal-input').focus();
+}
+
+function startGame() {
+  showModal('ENTER OPERATIVE ALIAS', 'Choose your hacker alias.', true, name => {
+    player.name = (name || '').trim() || 'Ghost';
+    launchTerminal();
+  });
+}
+
+function runBoot() {
+  const ids = ['b1','b2','b3','b4','b5','b6'];
+  const bar = document.getElementById('boot-bar-fill');
+  const pct = document.getElementById('boot-pct');
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.style.animation = 'fadeIn 0.4s ease forwards';
+      const p = Math.round(((i + 1) / ids.length) * 100);
+      bar.style.width  = p + '%';
+      pct.textContent  = p + '%';
+      if (i === ids.length - 1) {
+        setTimeout(() => { document.getElementById('start-btn').style.display = 'block'; }, 400);
+      }
+    }, i * 500 + 300);
+  });
+}
+
+runBoot();
+</script>
+</body>
+</html>

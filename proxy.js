@@ -1,4 +1,4 @@
-// Canvas Tracker - Proxy Server
+// Scholr - Proxy Server
 // Local:  node proxy.js  →  http://localhost:3000
 // Deploy: push to GitHub, connect to Railway
 
@@ -68,7 +68,7 @@ const server = http.createServer((req, res) => {
         method:   'GET',
         headers:  {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-          'User-Agent':    'CanvasTracker/1.0',
+          'User-Agent':    'Scholr/1.0',
           'Accept':        'application/json',
         }
       };
@@ -114,13 +114,13 @@ const server = http.createServer((req, res) => {
       }
 
       const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;background:#fff;border-radius:10px;padding:28px;border:1px solid #ddd;">
-        <h2 style="color:#4f8ef7;margin-top:0;">📚 Canvas Tracker</h2>
+        <h2 style="color:#4f8ef7;margin-top:0;">📚 Scholr</h2>
         <div style="background:#f9f9f9;border-left:4px solid #4f8ef7;padding:16px;border-radius:6px;white-space:pre-wrap;font-size:14px;line-height:1.8;color:#333;">${message}</div>
-        <p style="font-size:12px;color:#999;margin-top:20px;margin-bottom:0;">Automated alert from Canvas Tracker.</p>
+        <p style="font-size:12px;color:#999;margin-top:20px;margin-bottom:0;">Automated alert from Scholr.</p>
       </div>`;
 
       const payload = JSON.stringify({
-        from:    'Canvas Tracker <onboarding@resend.dev>',
+        from:    'Scholr <onboarding@resend.dev>',
         to:      [to],
         subject,
         html
@@ -174,7 +174,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n  Canvas Tracker → http://localhost:${PORT}\n`);
+  console.log(`\n  Scholr → http://localhost:${PORT}\n`);
 });
 
 module.exports = server;

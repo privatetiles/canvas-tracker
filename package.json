@@ -1,5 +1,5 @@
 {
-  "name": "canvas-tracker",
+  "name": "scholr",
   "version": "1.0.0",
   "description": "Canvas grade and assignment tracker",
   "main": "main.js",
@@ -17,8 +17,8 @@
     "node": ">=18"
   },
   "build": {
-    "appId": "com.canvastracker.app",
-    "productName": "Canvas Tracker",
+    "appId": "com.scholr.app",
+    "productName": "Scholr",
     "asar": false,
     "files": [
       "main.js",
