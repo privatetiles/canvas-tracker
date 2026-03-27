@@ -2,12 +2,38 @@
   "name": "canvas-tracker",
   "version": "1.0.0",
   "description": "Canvas grade and assignment tracker",
-  "main": "proxy.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node proxy.js"
+    "start": "node proxy.js",
+    "electron": "electron .",
+    "build": "electron-builder"
   },
   "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
   "engines": {
     "node": ">=18"
+  },
+  "build": {
+    "appId": "com.canvastracker.app",
+    "productName": "Canvas Tracker",
+    "asar": false,
+    "files": [
+      "main.js",
+      "proxy.js",
+      "canvas-tracker.html",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.education"
+    },
+    "win": {
+      "target": "nsis"
+    }
   }
 }

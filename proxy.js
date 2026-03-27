@@ -48,9 +48,9 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      if (!canvasUrl || !token) {
+      if (!canvasUrl) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Missing url or token' }));
+        res.end(JSON.stringify({ error: 'Missing url' }));
         return;
       }
 
@@ -67,7 +67,7 @@ const server = http.createServer((req, res) => {
         path:     target.pathname + target.search,
         method:   'GET',
         headers:  {
-          'Authorization': `Bearer ${token}`,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'User-Agent':    'CanvasTracker/1.0',
           'Accept':        'application/json',
         }
@@ -176,3 +176,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`\n  Canvas Tracker → http://localhost:${PORT}\n`);
 });
+
+module.exports = server;
